@@ -28,10 +28,10 @@
       </a>
 
       <div class="d-flex align-items-center gap-2 ms-auto">
-        <!-- Weather snippet pill -->
-        <a href="/advisories" class="badge bg-white text-success text-decoration-none px-2 py-2 d-none d-sm-inline-flex align-items-center">
-          <i class="bi bi-cloud-sun me-1"></i>
-          <span>{{ settings.district or 'Thanjavur' }}</span>
+        <!-- Location Pill -->
+        <a href="/profile" class="badge bg-white text-success text-decoration-none px-2 py-2 d-none d-sm-inline-flex align-items-center shadow-sm" title="Change Location Preference">
+          <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+          <span class="fw-bold">{{ current_user.district or 'Thanjavur' }}</span>
         </a>
 
         <!-- Language toggle button -->
@@ -39,10 +39,28 @@
           🇬🇧 English
         </button>
 
-        <!-- Settings link -->
-        <a href="/settings" class="btn btn-sm btn-outline-light rounded-circle" title="Settings">
-          <i class="bi bi-gear-fill"></i>
-        </a>
+        {% if current_user.username %}
+        <!-- User Profile Dropdown -->
+        <div class="dropdown">
+          <button class="btn btn-sm btn-outline-light rounded-pill px-2 py-1 dropdown-toggle d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle"></i>
+            <span class="d-none d-md-inline small">{{ current_user.farmer_name.split(' ')[0] if current_user.farmer_name else current_user.username }}</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow">
+            <li class="dropdown-header">
+              <strong>{{ current_user.farmer_name }}</strong>
+              <div class="small text-muted">{{ current_user.village }}, {{ current_user.district }}</div>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="/profile"><i class="bi bi-gear-fill me-2 text-success"></i>Location & Profile</a></li>
+            <li><a class="dropdown-item" href="/advisories"><i class="bi bi-cloud-sun me-2 text-info"></i>{{ current_user.district }} Weather</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="/logout"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
+          </ul>
+        </div>
+        {% else %}
+        <a href="/login" class="btn btn-sm btn-light fw-bold text-success">Sign In</a>
+        {% endif %}
       </div>
 
       <!-- Desktop Nav links -->
@@ -92,6 +110,10 @@
     <a href="/financials" class="mobile-nav-item">
       <i class="bi bi-cash-coin"></i>
       <span data-i18n="nav_financials">P&L</span>
+    </a>
+    <a href="/profile" class="mobile-nav-item">
+      <i class="bi bi-person-gear"></i>
+      <span>Profile</span>
     </a>
   </div>
 

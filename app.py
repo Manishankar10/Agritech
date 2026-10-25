@@ -1,73 +1,234 @@
 import os
+from functools import wraps
 from datetime import datetime, date
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
 import db_store
 import seed_manager
 from services import mandi_service, weather_service, breeding_engine
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "uzhavan-farm-secret-key-2026")
+app.secret_key = os.environ.get("SECRET_KEY", "uzhavan-farm-secret-key-2026-auth")
 
-# Initialize seed data if database is empty
+# Initialize seed data
 try:
     seed_manager.seed_sample_farm_data()
 except Exception as e:
-    print(f"Notice on seed data check: {e}")
-
-# Context processor to inject user settings into all templates
-@app.context_processor
-def inject_settings():
-    settings = db_store.get_settings()
-    return dict(settings=settings)
+    print(f"Notice on seed check: {e}")
 
 # ==========================================
-# PAGE ROUTES
+# AUTHENTICATION HELPERS & MIDDLEWARE
+# ==========================================
+
+def get_current_user():
+    user_id = session.get("user_id")
+    if not user_id:
+        return None
+    return db_store.get_user_by_username(user_id)
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get("user_id"):
+            return redirect(url_for("login", next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.context_processor
+def inject_user_context():
+    user = get_current_user()
+    if not user:
+        # Fallback default object for non-logged in or template safety
+        user = {
+            "username": "",
+            "farmer_name": "Farmer (உழவர்)",
+            "farm_name": "Uzhavan Farm",
+            "district": "Thanjavur",
+            "taluk": "",
+            "village": "",
+            "language": "ta"
+        }
+    return dict(current_user=user, settings=user)
+
+# ==========================================
+# AUTH ROUTES: LOGIN, SIGNUP, LOGOUT, PROFILE
+# ==========================================
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if session.get("user_id"):
+        return redirect(url_for("index"))
+
+    districts = mandi_service.ALL_TN_DISTRICTS
+    error = None
+
+    if request.method == "POST":
+        action = request.form.get("action")
+        
+        # Quick Demo Login Button
+        if action == "demo":
+            user = db_store.get_user_by_username("farmer")
+            if user:
+                _set_user_session(user)
+                return redirect(url_for("index"))
+
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+
+        user = db_store.authenticate_user(username, password)
+        if user:
+            _set_user_session(user)
+            next_url = request.args.get("next") or url_for("index")
+            return redirect(next_url)
+        else:
+            error = "Invalid username or password. Please try again."
+
+    return render_template("login.html", error=error, districts=districts)
+
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    if session.get("user_id"):
+        return redirect(url_for("index"))
+
+    districts = mandi_service.ALL_TN_DISTRICTS
+    error = None
+
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+        farmer_name = request.form.get("farmer_name", "").strip()
+        farm_name = request.form.get("farm_name", "").strip()
+        district = request.form.get("district", "Thanjavur").strip()
+        taluk = request.form.get("taluk", "").strip()
+        village = request.form.get("village", "").strip()
+        language = request.form.get("language", "ta").strip()
+
+        if not username or not password or not farmer_name:
+            error = "Please fill in all required fields (Username, Password, Farmer Name)."
+        elif len(password) < 4:
+            error = "Password should be at least 4 characters long."
+        else:
+            user, err = db_store.create_user(
+                username=username,
+                password=password,
+                farmer_name=farmer_name,
+                farm_name=farm_name,
+                district=district,
+                taluk=taluk,
+                village=village,
+                language=language
+            )
+            if err:
+                error = err
+            else:
+                _set_user_session(user)
+                return redirect(url_for("index"))
+
+    return render_template("signup.html", error=error, districts=districts)
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+def _set_user_session(user):
+    session["user_id"] = user["id"]
+    session["username"] = user["username"]
+    session["farmer_name"] = user.get("farmer_name", "")
+    session["farm_name"] = user.get("farm_name", "")
+    session["district"] = user.get("district", "Thanjavur")
+    session["language"] = user.get("language", "ta")
+
+@app.route("/profile", methods=["GET", "POST"])
+@login_required
+def profile():
+    user = get_current_user()
+    districts = mandi_service.ALL_TN_DISTRICTS
+    msg = None
+
+    if request.method == "POST":
+        update_data = {
+            "farmer_name": request.form.get("farmer_name", "").strip(),
+            "farm_name": request.form.get("farm_name", "").strip(),
+            "district": request.form.get("district", "").strip(),
+            "taluk": request.form.get("taluk", "").strip(),
+            "village": request.form.get("village", "").strip(),
+            "language": request.form.get("language", "ta").strip(),
+            "data_gov_key": request.form.get("data_gov_key", "").strip()
+        }
+        pwd = request.form.get("password")
+        if pwd and len(pwd.strip()) >= 4:
+            update_data["password"] = pwd.strip()
+
+        updated = db_store.update_user_profile(user["username"], update_data)
+        if updated:
+            _set_user_session(updated)
+            user = updated
+            msg = "Profile and location preferences updated successfully! Data across the app now reflects your location."
+
+    return render_template("profile.html", user=user, districts=districts, msg=msg)
+
+# ==========================================
+# PAGE ROUTES (PROTECTED)
 # ==========================================
 
 @app.route("/")
+@login_required
 def index():
     return render_template("index.html")
 
 @app.route("/mandi")
+@login_required
 def mandi():
     districts = mandi_service.ALL_TN_DISTRICTS
-    return render_template("mandi.html", districts=districts)
+    user = get_current_user()
+    user_district = user.get("district", "Thanjavur")
+    return render_template("mandi.html", districts=districts, user_district=user_district)
 
 @app.route("/crops")
+@login_required
 def crops():
     return render_template("crops.html")
 
 @app.route("/livestock")
+@login_required
 def livestock():
     return render_template("livestock.html")
 
 @app.route("/financials")
+@login_required
 def financials():
     return render_template("financials.html")
 
 @app.route("/advisories")
+@login_required
 def advisories():
     districts = mandi_service.ALL_TN_DISTRICTS
-    return render_template("advisories.html", districts=districts)
+    user = get_current_user()
+    user_district = user.get("district", "Thanjavur")
+    return render_template("advisories.html", districts=districts, user_district=user_district)
 
+# Settings alias redirects to profile
 @app.route("/settings")
+@login_required
 def settings_page():
-    districts = mandi_service.ALL_TN_DISTRICTS
-    return render_template("settings.html", districts=districts)
+    return redirect(url_for("profile"))
 
 # ==========================================
-# REST API ENDPOINTS
+# REST API ENDPOINTS (SCOPED TO CURRENT USER)
 # ==========================================
 
 @app.route("/api/overview")
+@login_required
 def api_overview():
-    """Returns dashboard summary stats, financial totals, and urgent alerts."""
-    plots = db_store.get_all("plots")
-    crops = db_store.get_all("crops")
-    livestock = db_store.get_all("livestock")
-    breeding_records = db_store.get_all("breeding_records")
-    financials = db_store.get_all("financials")
-    settings = db_store.get_settings()
+    user = get_current_user()
+    uname = user["username"]
+    user_district = user.get("district", "Thanjavur")
+
+    plots = db_store.get_user_items("plots", uname)
+    crops = db_store.get_user_items("crops", uname)
+    livestock = db_store.get_user_items("livestock", uname)
+    breeding_records = db_store.get_user_items("breeding_records", uname)
+    financials = db_store.get_user_items("financials", uname)
 
     total_acres = sum(float(p.get("area_acres", 0)) for p in plots)
     active_crops = [c for c in crops if c.get("status") == "active"]
@@ -78,11 +239,15 @@ def api_overview():
 
     alerts = breeding_engine.generate_livestock_alerts(livestock, breeding_records)
 
-    # Weather quick snapshot
-    district = settings.get("district", "Thanjavur")
-    weather = weather_service.get_weather_forecast(district)
+    # Weather snapshot based on user's selected location!
+    weather = weather_service.get_weather_forecast(user_district)
 
     return jsonify({
+        "farmer_name": user.get("farmer_name"),
+        "farm_name": user.get("farm_name"),
+        "district": user_district,
+        "village": user.get("village"),
+        "taluk": user.get("taluk"),
         "total_plots": len(plots),
         "total_acres": round(total_acres, 1),
         "active_crops_count": len(active_crops),
@@ -90,90 +255,125 @@ def api_overview():
         "total_income": round(total_income, 2),
         "total_expense": round(total_expense, 2),
         "net_profit": round(net_profit, 2),
-        "alerts": alerts[:5], # top 5 alerts
+        "alerts": alerts[:5],
         "weather_snapshot": {
             "temp": weather["current"]["temp"],
             "condition": weather["current"]["condition"],
             "condition_ta": weather["current"]["condition_ta"],
             "rain_prob": weather["forecast"][0]["rain_prob"] if weather["forecast"] else 0,
-            "district": district
+            "district": user_district
         }
     })
 
-# --- Mandi API ---
+# --- Location-Centric Mandi Prices ---
 @app.route("/api/mandi/prices")
+@login_required
 def api_mandi_prices():
-    district = request.args.get("district", "")
-    search = request.args.get("search", "")
-    settings = db_store.get_settings()
-    api_key = settings.get("data_gov_key") or os.environ.get("DATA_GOV_IN_API_KEY")
+    user = get_current_user()
+    user_district = user.get("district", "Thanjavur")
 
-    prices = mandi_service.get_mandi_prices(district=district, search_term=search, api_key=api_key)
+    # If district is specifically chosen in dropdown, respect that; otherwise default to user's preferred district
+    selected_district = request.args.get("district")
+    if not selected_district or selected_district == "all":
+        district = user_district
+        scope = "regional"
+    elif selected_district == "user_local":
+        district = user_district
+        scope = "local"
+    elif selected_district == "all_tn":
+        district = None
+        scope = "all"
+    else:
+        district = selected_district
+        scope = "local"
+
+    search = request.args.get("search", "")
+    prices = mandi_service.get_mandi_prices_for_user(user_district=district, search_term=search, scope=scope)
     return jsonify(prices)
 
 @app.route("/api/mandi/trend")
+@login_required
 def api_mandi_trend():
-    commodity = request.args.get("commodity", "Paddy (Ponni)")
+    commodity = request.args.get("commodity", "Paddy (Ponni / பொன்னி)")
     history = mandi_service.get_price_history(commodity, days=15)
     return jsonify(history)
 
-# --- Plots API ---
+# --- User-Scoped Plots API ---
 @app.route("/api/plots", methods=["GET", "POST"])
+@login_required
 def api_plots():
+    user = get_current_user()
+    uname = user["username"]
+
     if request.method == "POST":
         data = request.json or request.form.to_dict()
-        item = db_store.save_item("plots", data)
+        data["location"] = f"{user.get('village', '')}, {user.get('district', '')}".strip(", ")
+        item = db_store.save_user_item("plots", data, uname)
         return jsonify(item), 201
-    return jsonify(db_store.get_all("plots"))
+
+    return jsonify(db_store.get_user_items("plots", uname))
 
 @app.route("/api/plots/<plot_id>", methods=["DELETE"])
+@login_required
 def api_delete_plot(plot_id):
-    db_store.delete_item("plots", plot_id)
-    return jsonify({"success": True})
+    user = get_current_user()
+    success = db_store.delete_user_item("plots", plot_id, user["username"])
+    return jsonify({"success": success})
 
-# --- Crops API ---
+# --- User-Scoped Crops API ---
 @app.route("/api/crops", methods=["GET", "POST"])
+@login_required
 def api_crops():
+    user = get_current_user()
+    uname = user["username"]
+
     if request.method == "POST":
         data = request.json or request.form.to_dict()
         if not data.get("status"):
             data["status"] = "active"
-        item = db_store.save_item("crops", data)
+        item = db_store.save_user_item("crops", data, uname)
         return jsonify(item), 201
     
-    crops = db_store.get_all("crops")
-    plots = {p["id"]: p.get("name") for p in db_store.get_all("plots")}
+    crops = db_store.get_user_items("crops", uname)
+    plots = {p["id"]: p.get("name") for p in db_store.get_user_items("plots", uname)}
     for c in crops:
         if c.get("plot_id") in plots:
             c["plot_name"] = plots[c["plot_id"]]
     return jsonify(crops)
 
 @app.route("/api/crops/<crop_id>", methods=["DELETE", "PUT"])
+@login_required
 def api_modify_crop(crop_id):
+    user = get_current_user()
+    uname = user["username"]
+
     if request.method == "DELETE":
-        db_store.delete_item("crops", crop_id)
+        db_store.delete_user_item("crops", crop_id, uname)
         return jsonify({"success": True})
     elif request.method == "PUT":
         data = request.json or {}
         existing = db_store.get_by_id("crops", crop_id)
-        if existing:
+        if existing and existing.get("user_id", "farmer") == uname:
             existing.update(data)
-            db_store.save_item("crops", existing)
+            db_store.save_user_item("crops", existing, uname)
             return jsonify(existing)
-        return jsonify({"error": "Crop not found"}), 404
+        return jsonify({"error": "Crop not found or unauthorized"}), 404
 
-# --- Livestock API ---
+# --- User-Scoped Livestock API ---
 @app.route("/api/livestock", methods=["GET", "POST"])
+@login_required
 def api_livestock():
+    user = get_current_user()
+    uname = user["username"]
+
     if request.method == "POST":
         data = request.json or request.form.to_dict()
-        item = db_store.save_item("livestock", data)
+        item = db_store.save_user_item("livestock", data, uname)
         return jsonify(item), 201
     
-    animals = db_store.get_all("livestock")
-    breeding_records = db_store.get_all("breeding_records")
+    animals = db_store.get_user_items("livestock", uname)
+    breeding_records = db_store.get_user_items("breeding_records", uname)
     
-    # Enrich animal with active breeding info & gestation progress
     for animal in animals:
         aid = str(animal.get("id"))
         species = (animal.get("species") or "cow").lower()
@@ -189,24 +389,30 @@ def api_livestock():
     return jsonify(animals)
 
 @app.route("/api/livestock/<animal_id>", methods=["DELETE"])
+@login_required
 def api_delete_livestock(animal_id):
-    db_store.delete_item("livestock", animal_id)
+    user = get_current_user()
+    db_store.delete_user_item("livestock", animal_id, user["username"])
     return jsonify({"success": True})
 
-# --- Breeding Records API ---
+# --- User-Scoped Breeding Records API ---
 @app.route("/api/breeding", methods=["GET", "POST"])
+@login_required
 def api_breeding():
+    user = get_current_user()
+    uname = user["username"]
+
     if request.method == "POST":
         data = request.json or request.form.to_dict()
         if not data.get("status"):
             data["status"] = "active"
-        item = db_store.save_item("breeding_records", data)
+        item = db_store.save_user_item("breeding_records", data, uname)
         return jsonify(item), 201
-    return jsonify(db_store.get_all("breeding_records"))
+    return jsonify(db_store.get_user_items("breeding_records", uname))
 
 @app.route("/api/breeding/calculate")
+@login_required
 def api_breeding_calculate():
-    """Dynamic reproduction calculator for previewing dates."""
     species = request.args.get("species", "cow")
     ev_date = request.args.get("date", date.today().isoformat())
     if species in ["cow", "buffalo"]:
@@ -216,13 +422,19 @@ def api_breeding_calculate():
     return jsonify(res)
 
 @app.route("/api/breeding/<record_id>", methods=["DELETE"])
+@login_required
 def api_delete_breeding(record_id):
-    db_store.delete_item("breeding_records", record_id)
+    user = get_current_user()
+    db_store.delete_user_item("breeding_records", record_id, user["username"])
     return jsonify({"success": True})
 
-# --- Milk Records API ---
+# --- User-Scoped Milk Records API ---
 @app.route("/api/milk", methods=["GET", "POST"])
+@login_required
 def api_milk():
+    user = get_current_user()
+    uname = user["username"]
+
     if request.method == "POST":
         data = request.json or request.form.to_dict()
         try:
@@ -233,40 +445,51 @@ def api_milk():
             data["total_amount"] = round(data["total_liters"] * rate, 2)
         except Exception:
             pass
-        item = db_store.save_item("milk_records", data)
+        item = db_store.save_user_item("milk_records", data, uname)
         return jsonify(item), 201
     
-    logs = db_store.get_all("milk_records")
+    logs = db_store.get_user_items("milk_records", uname)
     logs.sort(key=lambda x: x.get("date", ""), reverse=True)
     return jsonify(logs)
 
 @app.route("/api/milk/<log_id>", methods=["DELETE"])
+@login_required
 def api_delete_milk(log_id):
-    db_store.delete_item("milk_records", log_id)
+    user = get_current_user()
+    db_store.delete_user_item("milk_records", log_id, user["username"])
     return jsonify({"success": True})
 
-# --- Financials API ---
+# --- User-Scoped Financials API ---
 @app.route("/api/financials", methods=["GET", "POST"])
+@login_required
 def api_financials():
+    user = get_current_user()
+    uname = user["username"]
+
     if request.method == "POST":
         data = request.json or request.form.to_dict()
         if "amount" in data:
             data["amount"] = float(data["amount"])
-        item = db_store.save_item("financials", data)
+        item = db_store.save_user_item("financials", data, uname)
         return jsonify(item), 201
 
-    txns = db_store.get_all("financials")
+    txns = db_store.get_user_items("financials", uname)
     txns.sort(key=lambda x: x.get("date", ""), reverse=True)
     return jsonify(txns)
 
 @app.route("/api/financials/<item_id>", methods=["DELETE"])
+@login_required
 def api_delete_financial(item_id):
-    db_store.delete_item("financials", item_id)
+    user = get_current_user()
+    db_store.delete_user_item("financials", item_id, user["username"])
     return jsonify({"success": True})
 
 @app.route("/api/financials/stats")
+@login_required
 def api_financials_stats():
-    txns = db_store.get_all("financials")
+    user = get_current_user()
+    uname = user["username"]
+    txns = db_store.get_user_items("financials", uname)
     
     cat_expenses = {}
     cat_income = {}
@@ -295,29 +518,35 @@ def api_financials_stats():
         "income_by_category": {k: round(v, 2) for k, v in cat_income.items()}
     })
 
-# --- Weather API ---
+# --- Location-Specific Weather & Advisories API ---
 @app.route("/api/weather")
+@login_required
 def api_weather():
+    user = get_current_user()
     district = request.args.get("district")
-    if not district:
-        settings = db_store.get_settings()
-        district = settings.get("district", "Thanjavur")
+    if not district or district == "auto":
+        district = user.get("district", "Thanjavur")
     data = weather_service.get_weather_forecast(district)
     return jsonify(data)
 
 # --- Vaccination Calendar API ---
 @app.route("/api/vaccinations")
+@login_required
 def api_vaccinations():
     return jsonify(breeding_engine.get_vaccination_calendar())
 
-# --- Settings API ---
+# --- Settings API (Updates User Profile) ---
 @app.route("/api/settings", methods=["GET", "POST"])
+@login_required
 def api_settings():
+    user = get_current_user()
     if request.method == "POST":
         data = request.json or request.form.to_dict()
-        updated = db_store.update_settings(data)
-        return jsonify(updated)
-    return jsonify(db_store.get_settings())
+        updated = db_store.update_user_profile(user["username"], data)
+        if updated:
+            _set_user_session(updated)
+            return jsonify(updated)
+    return jsonify(user)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

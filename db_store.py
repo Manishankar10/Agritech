@@ -2,6 +2,7 @@ import os
 import json
 import uuid
 from datetime import datetime, date
+from werkzeug.security import generate_password_hash, check_password_hash
 
 _MONGO_URI = os.environ.get("MONGO_URI") or os.environ.get("MONGODB_URI")
 db = None
@@ -23,14 +24,14 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "local_data"
 os.makedirs(DATA_DIR, exist_ok=True)
 
 COLLECTIONS = [
+    "users",
     "plots",
     "crops",
     "financials",
     "livestock",
     "breeding_records",
     "milk_records",
-    "market_cache",
-    "settings"
+    "market_cache"
 ]
 
 def _json_serial(obj):
@@ -79,13 +80,11 @@ def get_all(collection_name):
                     if "_id" in doc:
                         doc["id"] = str(doc["_id"])
                         doc.pop("_id", None)
-                # Sync back to local JSON for offline caching
                 _write_local_json(collection_name, docs)
                 return docs
         except Exception as e:
             print(f"MongoDB get_all error for {collection_name}: {e}")
 
-    # Fallback to local JSON
     return _read_local_json(collection_name)
 
 def get_by_id(collection_name, item_id):
@@ -107,7 +106,6 @@ def save_item(collection_name, item_data):
 
     item_id = str(item_data["id"])
 
-    # Update local JSON
     items = _read_local_json(collection_name)
     updated = False
     for idx, item in enumerate(items):
@@ -119,7 +117,6 @@ def save_item(collection_name, item_data):
         items.append(item_data)
     _write_local_json(collection_name, items)
 
-    # Sync to MongoDB Atlas
     if db is not None:
         try:
             col = db[collection_name]
@@ -146,28 +143,88 @@ def delete_item(collection_name, item_id):
             print(f"MongoDB delete_item error for {collection_name}: {e}")
     return True
 
-def get_settings():
-    settings_list = get_all("settings")
-    if settings_list:
-        return settings_list[0]
-    default_settings = {
-        "id": "app_settings",
-        "farm_name": "Uzhavan Farm (உழவன் பண்ணை)",
-        "farmer_name": "Murugan K (முருகன்)",
-        "district": "Thanjavur",
-        "taluk": "Kumbakonam",
-        "village": "Thiruvidaimarudur",
-        "language": "ta",  # 'ta' or 'en'
-        "currency": "INR (₹)",
+# ========================================================
+# USER AUTHENTICATION & LOCATION PREFERENCE STORE
+# ========================================================
+
+def get_user_by_username(username):
+    if not username:
+        return None
+    uname = username.strip().lower()
+    users = get_all("users")
+    for u in users:
+        if u.get("username", "").lower() == uname or str(u.get("id", "")).lower() == uname:
+            return u
+    return None
+
+def create_user(username, password, farmer_name, farm_name, district, taluk="", village="", language="ta"):
+    uname = username.strip().lower()
+    if get_user_by_username(uname):
+        return None, "Username already exists. Please choose another or login."
+
+    user_doc = {
+        "id": uname,
+        "username": uname,
+        "password_hash": generate_password_hash(password),
+        "farmer_name": farmer_name.strip() or uname.capitalize(),
+        "farm_name": farm_name.strip() or f"{farmer_name}'s Farm",
+        "district": district.strip() or "Thanjavur",
+        "taluk": taluk.strip(),
+        "village": village.strip(),
+        "language": language or "ta",
         "created_at": datetime.now().isoformat()
     }
-    save_item("settings", default_settings)
-    return default_settings
+    save_item("users", user_doc)
+    return user_doc, None
 
-def update_settings(data):
-    current = get_settings()
-    current.update(data)
-    current["id"] = "app_settings"
-    current["updated_at"] = datetime.now().isoformat()
-    save_item("settings", current)
-    return current
+def authenticate_user(username, password):
+    user = get_user_by_username(username)
+    if not user:
+        return None
+    if check_password_hash(user.get("password_hash", ""), password):
+        return user
+    return None
+
+def update_user_profile(username, update_data):
+    user = get_user_by_username(username)
+    if not user:
+        return None
+    
+    # Do not overwrite username or id
+    update_data.pop("username", None)
+    update_data.pop("id", None)
+    
+    if "password" in update_data and update_data["password"]:
+        user["password_hash"] = generate_password_hash(update_data["password"])
+        update_data.pop("password", None)
+
+    user.update(update_data)
+    user["updated_at"] = datetime.now().isoformat()
+    save_item("users", user)
+    return user
+
+# ========================================================
+# USER-SCOPED ENTITY HELPERS
+# ========================================================
+
+def get_user_items(collection_name, username):
+    """Retrieves all items belonging specifically to the logged-in user."""
+    all_items = get_all(collection_name)
+    if not username:
+        return all_items
+    uname = username.strip().lower()
+    # If item has no user_id, assign to default demo farmer so existing data displays
+    return [i for i in all_items if i.get("user_id", "farmer").lower() == uname]
+
+def save_user_item(collection_name, item_data, username):
+    if username:
+        item_data["user_id"] = username.strip().lower()
+    return save_item(collection_name, item_data)
+
+def delete_user_item(collection_name, item_id, username):
+    item = get_by_id(collection_name, item_id)
+    if not item:
+        return False
+    if username and item.get("user_id", "farmer").lower() != username.strip().lower():
+        return False # Permission denied
+    return delete_item(collection_name, item_id)

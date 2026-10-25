@@ -141,10 +141,13 @@ async function loadMandiPrices() {
         <tr>
           <td>
             <strong>${commName}</strong>
+            ${p.is_local ? `<span class="badge bg-success-subtle text-success border ms-1"><i class="bi bi-geo-alt-fill"></i> Local</span>` : ""}
             <div class="small text-muted">${p.variety}</div>
           </td>
           <td>${p.market}</td>
-          <td><span class="badge bg-light text-dark border">${p.district}</span></td>
+          <td>
+            <span class="badge ${p.is_local ? 'bg-success text-white' : 'bg-light text-dark border'}">${p.district}</span>
+          </td>
           <td>₹${p.min_price.toLocaleString("en-IN")}</td>
           <td>₹${p.max_price.toLocaleString("en-IN")}</td>
           <td><span class="price-pill">₹${p.modal_price.toLocaleString("en-IN")}</span> <span class="small text-muted">${p.unit}</span></td>
