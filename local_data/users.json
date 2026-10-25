@@ -55,7 +55,7 @@
   {
     "id": "manishankar",
     "username": "manishankar",
-    "password_hash": "scrypt:32768:8:1$XN4JFv8SYNN2iYNF$5f37bb1e1ae319aa3892ea149ed776b99313f38c184a471bd3de94a9f8fd2949a7f2ecd30495a0cb804887d1b8d5f305a61b89d828df243a95c5a28f68c98ddf",
+    "password_hash": "scrypt:32768:8:1$BOvxV63ADk2NMGnh$5410a04c67841537af58cd650a35c5b9c5a60887a33c97e966a847b4f9b25029e5a8ffc508a7287bdf79059d471267767315d3b852855a216dc96e73906a2b69",
     "farmer_name": "Mani Shankar T",
     "farm_name": "Kalathukaatu thottam",
     "district": "Tiruppur",
