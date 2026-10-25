@@ -263,5 +263,47 @@ class TestUzhavanDesk(unittest.TestCase):
         self.assertEqual(created["status"], "active")
         self.assertIn("Sowing", created["stage"])
 
+    def test_kuchchi_kilangu_crop_sale_trade_record(self):
+        """Verifies structured crop trade entry for Kuchchi Kilangu (Tapioca) with tons, rate, and multiline description."""
+        self.client.post("/login", data={"action": "demo"}, follow_redirects=True)
+        trade_data = {
+            "type": "income",
+            "category": "Tapioca / Kuchchi Kilangu (மரவள்ளிக் கிழங்கு / குச்சிக் கிழங்கு)",
+            "commodity": "Kuchchi Kilangu / Tapioca (மரவள்ளிக் கிழங்கு / குச்சிக் கிழங்கு)",
+            "quantity": 14.5,
+            "unit": "Tons",
+            "rate_per_unit": 9200.0,
+            "amount": 133400.0,
+            "buyer": "Salem Sago Factory / Trader Murugan",
+            "slip_no": "Weighbridge Slip #4892 • TN-28-AB-1234",
+            "date": date.today().isoformat(),
+            "desc": "First harvest from Plot #2.\nStarch point 28 - no deductions.\nPayment settled via NEFT."
+        }
+        resp = self.client.post("/api/financials", json=trade_data)
+        self.assertEqual(resp.status_code, 201)
+        created = json.loads(resp.data)
+        self.assertEqual(created["commodity"], "Kuchchi Kilangu / Tapioca (மரவள்ளிக் கிழங்கு / குச்சிக் கிழங்கு)")
+        self.assertEqual(created["quantity"], 14.5)
+        self.assertEqual(created["unit"], "Tons")
+        self.assertEqual(created["rate_per_unit"], 9200.0)
+        self.assertEqual(created["amount"], 133400.0)
+        self.assertEqual(created["buyer"], "Salem Sago Factory / Trader Murugan")
+        self.assertIn("\n", created["desc"])
+
+        # Verify record is retrieved via GET /api/financials
+        get_resp = self.client.get("/api/financials")
+        self.assertEqual(get_resp.status_code, 200)
+        records = json.loads(get_resp.data)
+        target = next((r for r in records if r["id"] == created["id"]), None)
+        self.assertIsNotNone(target)
+        self.assertEqual(target["slip_no"], "Weighbridge Slip #4892 • TN-28-AB-1234")
+
+        # Verify stats reflect new income
+        stats_resp = self.client.get("/api/financials/stats")
+        self.assertEqual(stats_resp.status_code, 200)
+        stats = json.loads(stats_resp.data)
+        self.assertTrue(stats["total_income"] >= 133400.0)
+
 if __name__ == "__main__":
     unittest.main()
+

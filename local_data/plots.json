@@ -20,5 +20,53 @@
     "location": "Thiruvidaimarudur, Thanjavur",
     "updated_at": "2026-10-25T17:49:48.644718",
     "created_at": "2026-10-25T17:49:48.644734"
+  },
+  {
+    "name": "Old Coconut Plot",
+    "area_acres": "1.5",
+    "survey_no": "",
+    "soil_type": "Black Cotton Soil (கரிசல் மண்)",
+    "water_source": "Irrigation",
+    "location": "Mettankattuvalasu, Tiruppur",
+    "user_id": "manishankar",
+    "id": "283af136-36dc-4375-8afc-7ec66460dd00",
+    "updated_at": "2026-10-25T18:50:35.066480",
+    "created_at": "2026-10-25T18:50:35.066494"
+  },
+  {
+    "name": "New Coconut Plot",
+    "area_acres": "2.8",
+    "survey_no": "",
+    "soil_type": "Black Cotton Soil (கரிசல் மண்)",
+    "water_source": "Irrigation",
+    "location": "Mettankattuvalasu, Tiruppur",
+    "user_id": "manishankar",
+    "id": "a93eff88-5628-455d-8cfb-bb2314cb3f47",
+    "updated_at": "2026-10-25T18:51:10.376798",
+    "created_at": "2026-10-25T18:51:10.376819"
+  },
+  {
+    "name": "North Side Land - Shared Plot",
+    "area_acres": "1",
+    "survey_no": "",
+    "soil_type": "Red Loam (செம்மண்)",
+    "water_source": "Water",
+    "location": "Mettankattuvalasu, Tiruppur",
+    "user_id": "manishankar",
+    "id": "4fd511d3-2446-402a-b65e-eac35d94ec86",
+    "updated_at": "2026-10-25T18:51:48.286780",
+    "created_at": "2026-10-25T18:51:48.286794"
+  },
+  {
+    "name": "South Side land",
+    "area_acres": "1",
+    "survey_no": "",
+    "soil_type": "Red Loam (செம்மண்)",
+    "water_source": "Water",
+    "location": "Mettankattuvalasu, Tiruppur",
+    "user_id": "manishankar",
+    "id": "b2311237-cf5f-4823-832e-f56ea81dc8f5",
+    "updated_at": "2026-10-25T18:52:18.196972",
+    "created_at": "2026-10-25T18:52:18.196980"
   }
 ]

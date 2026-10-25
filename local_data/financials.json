@@ -127,5 +127,44 @@
     "id": "5de361e9-cf10-46f1-a61a-f8ebfb072370",
     "updated_at": "2026-10-25T18:45:41.172830",
     "created_at": "2026-10-25T18:45:41.172840"
+  },
+  {
+    "amount": 2500.0,
+    "category": "Fertilizer / உரங்கள்",
+    "date": "2026-10-25",
+    "desc": "Neem Coated Urea (2 bags)",
+    "type": "expense",
+    "user_id": "farmer",
+    "id": "cb16f8b8-c751-40e3-804e-b521232ccdbf",
+    "updated_at": "2026-10-25T18:54:13.771592",
+    "created_at": "2026-10-25T18:54:13.771600"
+  },
+  {
+    "amount": 133400.0,
+    "buyer": "Salem Sago Factory / Trader Murugan",
+    "category": "Tapioca / Kuchchi Kilangu (மரவள்ளிக் கிழங்கு / குச்சிக் கிழங்கு)",
+    "commodity": "Kuchchi Kilangu / Tapioca (மரவள்ளிக் கிழங்கு / குச்சிக் கிழங்கு)",
+    "date": "2026-10-25",
+    "desc": "First harvest from Plot #2.\nStarch point 28 - no deductions.\nPayment settled via NEFT.",
+    "quantity": 14.5,
+    "rate_per_unit": 9200.0,
+    "slip_no": "Weighbridge Slip #4892 • TN-28-AB-1234",
+    "type": "income",
+    "unit": "Tons",
+    "user_id": "farmer",
+    "id": "fe8a9f11-17c1-4803-87ab-894986013f57",
+    "updated_at": "2026-10-25T18:57:16.213268",
+    "created_at": "2026-10-25T18:57:16.213277"
+  },
+  {
+    "amount": 2500.0,
+    "category": "Fertilizer / உரங்கள்",
+    "date": "2026-10-25",
+    "desc": "Neem Coated Urea (2 bags)",
+    "type": "expense",
+    "user_id": "farmer",
+    "id": "9ede8a2d-375c-4c06-bb41-15bc8659f14e",
+    "updated_at": "2026-10-25T18:57:17.809314",
+    "created_at": "2026-10-25T18:57:17.809359"
   }
 ]

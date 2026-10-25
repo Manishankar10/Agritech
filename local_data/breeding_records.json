@@ -33,7 +33,7 @@
     "event_type": "insemination",
     "semen_bull_info": "Kangayam Purebred Bull #402",
     "technician": "Dr. Senthil / VAS",
-    "status": "active",
+    "status": "superseded",
     "animal_tag": "TN-02-KAMALAM",
     "user_id": "farmer",
     "id": "2c447e0b-31be-4054-8156-08e16cdb75d7",
@@ -52,5 +52,31 @@
     "id": "579333a1-395f-4a47-9b74-2e376154cfe0",
     "updated_at": "2026-10-25T18:45:55.004941",
     "created_at": "2026-10-25T18:45:55.005086"
+  },
+  {
+    "animal_id": "animal_tn02",
+    "date": "2026-10-25",
+    "event_type": "insemination",
+    "semen_bull_info": "Kangayam Purebred Bull #402",
+    "technician": "Dr. Senthil / VAS",
+    "status": "superseded",
+    "animal_tag": "TN-02-KAMALAM",
+    "user_id": "farmer",
+    "id": "81fb0c6a-bf84-4f09-b82c-03257cb49646",
+    "updated_at": "2026-10-25T18:54:13.693655",
+    "created_at": "2026-10-25T18:54:13.693666"
+  },
+  {
+    "animal_id": "animal_tn02",
+    "date": "2026-10-25",
+    "event_type": "insemination",
+    "semen_bull_info": "Kangayam Purebred Bull #402",
+    "technician": "Dr. Senthil / VAS",
+    "status": "active",
+    "animal_tag": "TN-02-KAMALAM",
+    "user_id": "farmer",
+    "id": "ad4dad99-e8ba-4c64-ad26-f5d83b109f1c",
+    "updated_at": "2026-10-25T18:57:17.752460",
+    "created_at": "2026-10-25T18:57:17.752475"
   }
 ]

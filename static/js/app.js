@@ -498,6 +498,140 @@ async function openMilkModal(animalId) {
 // ----------------------------------------------------
 // Financials Management
 // ----------------------------------------------------
+// Agricultural Trade & Transaction Helpers
+// ----------------------------------------------------
+const TXN_CATEGORIES = {
+  income: [
+    { value: "Crop Sale (பயிர் விற்பனை)", label: "Crop Sale (பயிர் விற்பனை - பொதுவானது)" },
+    { value: "Tapioca / Kuchchi Kilangu (மரவள்ளிக் கிழங்கு / குச்சிக் கிழங்கு)", label: "Tapioca / Kuchchi Kilangu (மரவள்ளிக் கிழங்கு)" },
+    { value: "Paddy Harvest Sale (நெல் அறுவடை விற்பனை)", label: "Paddy Harvest Sale (நெல் அறுவடை விற்பனை)" },
+    { value: "Coconut & Copra Sale (தேங்காய் & கொப்பரை விற்பனை)", label: "Coconut & Copra Sale (தேங்காய் & கொப்பரை விற்பனை)" },
+    { value: "Sugarcane Mill Supply (கரும்பு ஆலை சப்ளை)", label: "Sugarcane Mill Supply (கரும்பு ஆலை சப்ளை)" },
+    { value: "Turmeric Harvest Sale (மஞ்சள் விளைச்சல் விற்பனை)", label: "Turmeric Harvest Sale (மஞ்சள் விளைச்சல் விற்பனை)" },
+    { value: "Banana Harvest Sale (வாழைத் தார் விற்பனை)", label: "Banana Harvest Sale (வாழைத் தார் விற்பனை)" },
+    { value: "Vegetables / Onion Sale (காய்கறி / வெங்காயம் விற்பனை)", label: "Vegetables / Onion Sale (காய்கறி / வெங்காயம் விற்பனை)" },
+    { value: "Milk Sale (பால் விற்பனை)", label: "Milk Sale (பால் விற்பனை)" },
+    { value: "Livestock Sale (கால்நடை / ஆடு மாடு விற்பனை)", label: "Livestock Sale (கால்நடை / ஆடு மாடு விற்பனை)" },
+    { value: "Govt Subsidy / DBT (அரசு மானியம்)", label: "Govt Subsidy / DBT (அரசு மானியம்)" },
+    { value: "Other Farm Income (இதர விவசாய வரவு)", label: "Other Farm Income (இதர விவசாய வரவு)" }
+  ],
+  expense: [
+    { value: "Fertilizer & Manure (உரம் & எரு)", label: "Fertilizer & Manure (உரம் & எரு)" },
+    { value: "Labor & Coolie (கூலி & கூலியாட்கள்)", label: "Labor & Coolie (கூலி & கூலியாட்கள்)" },
+    { value: "Seeds & Saplings (விதை & நாற்று)", label: "Seeds & Saplings (விதை & நாற்று)" },
+    { value: "Tractor & Machinery Rental (டிராக்டர் / இயந்திர வாடகை)", label: "Tractor & Machinery Rental (டிராக்டர் / இயந்திர வாடகை)" },
+    { value: "Diesel & Fuel (டீசல் & எரிபொருள்)", label: "Diesel & Fuel (டீசல் & எரிபொருள்)" },
+    { value: "Pesticides & Crop Protection (பூச்சிக்கொல்லி & மருந்து)", label: "Pesticides & Crop Protection (பூச்சிக்கொல்லி & மருந்து)" },
+    { value: "Electricity & Irrigation (மின்சாரம் & பாசனம்)", label: "Electricity & Irrigation (மின்சாரம் & பாசனம்)" },
+    { value: "Cattle Feed & Fodder (தீவனம் & புல்)", label: "Cattle Feed & Fodder (தீவனம் & புல்)" },
+    { value: "Veterinary & Medicine (கால்நடை மருத்துவம்)", label: "Veterinary & Medicine (கால்நடை மருத்துவம்)" },
+    { value: "Transport & Freight (சரக்கு வண்டி வாடகை)", label: "Transport & Freight (சரக்கு வண்டி வாடகை)" },
+    { value: "Equipment Maintenance (கருவிகள் பழுதுபார்ப்பு)", label: "Equipment Maintenance (கருவிகள் பழுதுபார்ப்பு)" },
+    { value: "Other Farm Expense (இதர விவசாய செலவு)", label: "Other Farm Expense (இதர விவசாய செலவு)" }
+  ]
+};
+
+function onTxnTypeChange(type) {
+  const catSelect = document.getElementById("txnCategorySelect");
+  if (catSelect) {
+    const cats = TXN_CATEGORIES[type] || TXN_CATEGORIES.income;
+    const currentVal = catSelect.value;
+    catSelect.innerHTML = cats.map(c => `<option value="${c.value}">${c.label}</option>`).join("");
+    if (cats.some(c => c.value === currentVal)) {
+      catSelect.value = currentVal;
+    }
+  }
+
+  // Update produce card title
+  const produceTitle = document.querySelector("#cropTradeSection .small.fw-bold.text-dark");
+  if (produceTitle) {
+    if (type === "expense") {
+      produceTitle.innerHTML = `<i class="bi bi-box-seam text-danger me-1"></i> Agricultural Input / Quantity Details (உள்ளீடு & அளவு விவரம்)`;
+    } else {
+      produceTitle.innerHTML = `<i class="bi bi-basket-fill text-success me-1"></i> Produce & Quantity Details (விளைபொருள் விவரம் & எடை)`;
+    }
+  }
+
+  calculateTxnTotal();
+}
+
+function onTxnCategorySelectChange() {
+  const catSelect = document.getElementById("txnCategorySelect");
+  const commInput = document.getElementById("txnCommodity");
+  const unitSelect = document.getElementById("txnUnit");
+  if (!catSelect || !commInput) return;
+
+  const val = (catSelect.value || "").toLowerCase();
+  if (val.includes("tapioca") || val.includes("kuchchi")) {
+    commInput.value = "Kuchchi Kilangu / Tapioca (மரவள்ளிக் கிழங்கு / குச்சிக் கிழங்கு)";
+    if (unitSelect) unitSelect.value = "Tons";
+  } else if (val.includes("paddy")) {
+    commInput.value = "Paddy / Rice (நெல் / பொன்னி / குண்டு நெல்)";
+    if (unitSelect) unitSelect.value = "Bags (75kg)";
+  } else if (val.includes("coconut") || val.includes("copra")) {
+    commInput.value = "De-husked Coconut (மட்டை உரித்த தேங்காய்)";
+    if (unitSelect) unitSelect.value = "Tons";
+  } else if (val.includes("sugarcane")) {
+    commInput.value = "Sugarcane (கரும்பு)";
+    if (unitSelect) unitSelect.value = "Tons";
+  } else if (val.includes("turmeric")) {
+    commInput.value = "Turmeric (மஞ்சள்)";
+    if (unitSelect) unitSelect.value = "Quintals";
+  } else if (val.includes("milk")) {
+    commInput.value = "Cow Milk (பசும்பால்)";
+    if (unitSelect) unitSelect.value = "Liters";
+  }
+
+  calculateTxnTotal();
+}
+
+function calculateTxnTotal() {
+  const qtyInput = document.getElementById("txnQuantity");
+  const rateInput = document.getElementById("txnRate");
+  const unitSelect = document.getElementById("txnUnit");
+  const rateLabel = document.getElementById("txnRateLabel");
+  const amtInput = document.getElementById("txnAmount");
+  const previewBadge = document.getElementById("txnCalcPreview");
+
+  if (!qtyInput || !rateInput || !unitSelect) return;
+
+  const unit = unitSelect.value || "Unit";
+  let unitName = unit;
+  if (unit === "Tons") unitName = "Ton (₹ / டன் விலை)";
+  else if (unit === "Quintals") unitName = "Quintal (₹ / குவிண்டால் விலை)";
+  else if (unit === "Bags (75kg)") unitName = "75kg Bag (₹ / மூட்டை விலை)";
+  else if (unit === "Bags (50kg)") unitName = "50kg Bag (₹ / மூட்டை விலை)";
+  else if (unit === "Kg") unitName = "Kg (₹ / கிலோ விலை)";
+  else if (unit === "Pieces") unitName = "Piece / Coconut (₹ / காய் எண்ணிக்கை விலை)";
+  else if (unit === "Liters") unitName = "Liter (₹ / லிட்டர் விலை)";
+  else if (unit === "Bunches") unitName = "Bunch (₹ / தார் விலை)";
+
+  if (rateLabel) {
+    rateLabel.innerText = `Rate / Price per ${unitName}`;
+  }
+
+  const qty = parseFloat(qtyInput.value);
+  const rate = parseFloat(rateInput.value);
+
+  if (!isNaN(qty) && qty > 0 && !isNaN(rate) && rate > 0) {
+    const total = Math.round((qty * rate) * 100) / 100;
+    if (amtInput) amtInput.value = total.toFixed(2);
+
+    if (previewBadge) {
+      previewBadge.className = "badge bg-success-subtle text-success border border-success-subtle p-2 w-100 text-start font-monospace small";
+      previewBadge.innerHTML = `<i class="bi bi-check-circle-fill text-success me-1"></i> ${qty} ${unit} &times; ₹${rate.toLocaleString("en-IN")} = <strong>₹${total.toLocaleString("en-IN")}</strong>`;
+    }
+  } else {
+    if (previewBadge) {
+      previewBadge.className = "badge bg-white text-dark border p-2 w-100 text-start font-monospace small";
+      previewBadge.innerHTML = `<i class="bi bi-calculator me-1 text-primary"></i> Enter Quantity & Rate to auto-calculate total`;
+    }
+  }
+}
+
+// ----------------------------------------------------
+// Financials Loader
+// ----------------------------------------------------
 async function loadFinancials() {
   const tableBody = document.getElementById("txnsTableBody");
   if (!tableBody) return;
@@ -531,19 +665,42 @@ async function loadFinancials() {
     let rows = "";
     txns.forEach(t => {
       const isExp = t.type === "expense";
-      const typeBadge = isExp ? `<span class="badge bg-danger-subtle text-danger">Expense</span>` : `<span class="badge bg-success-subtle text-success">Income</span>`;
+      const typeBadge = isExp ? `<span class="badge bg-danger-subtle text-danger"><i class="bi bi-dash-circle me-1"></i>Expense</span>` : `<span class="badge bg-success-subtle text-success"><i class="bi bi-plus-circle me-1"></i>Income</span>`;
       const amtSign = isExp ? "-" : "+";
       const amtClass = isExp ? "text-danger" : "text-success";
 
+      let produceDetails = "";
+      if (t.quantity && t.rate_per_unit) {
+        const u = t.unit || "Units";
+        produceDetails += `<div class="badge bg-light text-dark border mb-1 tabular-nums"><i class="bi bi-calculator me-1 text-primary"></i><strong>${t.quantity} ${u}</strong> &times; ₹${parseFloat(t.rate_per_unit).toLocaleString("en-IN")}/${u.replace(/s\b/, '')}</div>`;
+      }
+      if (t.buyer) {
+        produceDetails += `<div class="small text-muted"><i class="bi bi-building me-1 text-secondary"></i><strong>Party/Mill:</strong> ${t.buyer}</div>`;
+      }
+      if (t.slip_no) {
+        produceDetails += `<div class="small text-muted"><i class="bi bi-receipt me-1 text-secondary"></i><strong>Slip/Ref:</strong> ${t.slip_no}</div>`;
+      }
+      if (t.desc) {
+        produceDetails += `<div class="small text-dark mt-1 p-2 bg-light border-start border-3 border-secondary rounded" style="white-space: pre-wrap; font-family: inherit;">${t.desc}</div>`;
+      }
+      if (!produceDetails) {
+        produceDetails = `<span class="text-muted small">${t.notes || "-"}</span>`;
+      }
+
+      const commodityBadge = t.commodity ? `<div class="small fw-bold text-success mt-1"><i class="bi bi-basket2-fill me-1"></i>${t.commodity}</div>` : "";
+
       rows += `
         <tr>
-          <td>${t.date}</td>
+          <td class="text-nowrap">${t.date}</td>
           <td>${typeBadge}</td>
-          <td><strong>${t.category}</strong></td>
-          <td class="text-secondary small">${t.desc || t.notes || "-"}</td>
-          <td class="fw-bold ${amtClass}">${amtSign}₹${parseFloat(t.amount).toLocaleString("en-IN")}</td>
           <td>
-            <button class="btn btn-sm btn-link text-danger p-0" onclick="deleteTxn('${t.id}')">
+            <strong>${t.category}</strong>
+            ${commodityBadge}
+          </td>
+          <td>${produceDetails}</td>
+          <td class="fw-bold tabular-nums text-nowrap ${amtClass}">${amtSign}₹${parseFloat(t.amount).toLocaleString("en-IN")}</td>
+          <td>
+            <button class="btn btn-sm btn-link text-danger p-0" title="Delete" onclick="deleteTxn('${t.id}')">
               <i class="bi bi-trash"></i>
             </button>
           </td>
@@ -643,6 +800,12 @@ async function populateQuickLogDropdowns() {
     } catch (err) {
       console.error("Failed to populate plot dropdowns:", err);
     }
+  }
+
+  // Populate financial transaction categories if empty
+  const catSelect = document.getElementById("txnCategorySelect");
+  if (catSelect && catSelect.children.length === 0) {
+    onTxnTypeChange("income");
   }
 
   // Pre-fill any empty date inputs with today's date
@@ -889,6 +1052,24 @@ document.addEventListener("DOMContentLoaded", () => {
   // Financial Transaction Form
   const finForm = document.getElementById("txnForm");
   if (finForm) {
+    // Intercept Enter key inside single-line inputs to avoid accidental premature submit
+    finForm.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && e.target && e.target.tagName === "INPUT") {
+        e.preventDefault();
+      }
+    });
+
+    // Handle multiline description box - prevent submit on Enter / Shift+Enter
+    const txnDesc = document.getElementById("txnDesc");
+    if (txnDesc) {
+      txnDesc.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          // Allow natural newline insertion in textarea, stop form interception
+          e.stopPropagation();
+        }
+      });
+    }
+
     finForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const submitBtn = finForm.querySelector("button[type='submit']");
@@ -905,6 +1086,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (res.ok) {
           finForm.reset();
+          if (typeof onTxnTypeChange === "function") onTxnTypeChange("income");
+          const calcPreview = document.getElementById("txnCalcPreview");
+          if (calcPreview) {
+            calcPreview.className = "badge bg-white text-dark border p-2 w-100 text-start font-monospace small";
+            calcPreview.innerHTML = '<i class="bi bi-calculator me-1 text-primary"></i> Enter Quantity & Rate to auto-calculate total';
+          }
           safeCloseModal("txnModal");
           showToast("Financial transaction recorded successfully", "success");
           if (typeof loadDashboardOverview === "function") loadDashboardOverview();

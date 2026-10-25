@@ -99,58 +99,164 @@
   </div>
 </div>
 
-<!-- Modal -->
-<div class="modal fade" id="txnModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
+<!-- Enhanced Financial Transaction Modal -->
+<div class="modal fade" id="txnModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow">
       <form id="txnForm">
-        <div class="modal-header">
-          <h6 class="modal-title fw-bold" data-i18n="add_txn_btn">Record Financial Transaction</h6>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label small fw-bold text-muted" data-i18n="type_expense">Transaction Type</label>
-            <select class="form-select" name="type" required>
-              <option value="expense">Expense (செலவு)</option>
-              <option value="income">Income (வரவு)</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label class="form-label small fw-bold text-muted" data-i18n="category">Category</label>
-            <input type="text" class="form-control" name="category" list="catSuggestionsFin" placeholder="e.g. Seeds, Fertilizer, Labor, Diesel, Milk..." required>
-            <datalist id="catSuggestionsFin">
-              <option value="Seeds / நாற்று">
-              <option value="Fertilizer / உரங்கள்">
-              <option value="Pesticides / பூச்சிக்கொல்லி">
-              <option value="Labor / கூலி">
-              <option value="Tractor & Machinery / உழவு கூலி">
-              <option value="Diesel & Fuel / டீசல்">
-              <option value="Cattle Feed / கால்நடை தீவனம்">
-              <option value="Veterinary Care / மருத்துவச் செலவு">
-              <option value="Crop Sale / பயிர் விற்பனை">
-              <option value="Milk Sale / பால் விற்பனை">
-              <option value="Livestock Sale / ஆடு மாடு விற்பனை">
-            </datalist>
-          </div>
-          <div class="row g-2 mb-3">
-            <div class="col-6">
-              <label class="form-label small fw-bold text-muted" data-i18n="amount">Amount (₹)</label>
-              <input type="number" step="0.01" class="form-control" name="amount" required placeholder="0.00">
+        <div class="modal-header bg-light border-bottom py-3">
+          <div class="d-flex align-items-center gap-2">
+            <div class="brand-icon-box" style="width: 32px; height: 32px; font-size: 1rem;">
+              <i class="bi bi-cash-stack"></i>
             </div>
-            <div class="col-6">
-              <label class="form-label small fw-bold text-muted" data-i18n="date">Date</label>
-              <input type="date" class="form-control" name="date" id="txnDateInp" required>
+            <div>
+              <h6 class="modal-title fw-bold mb-0 text-dark" data-i18n="add_txn_btn">Record Financial Transaction</h6>
+              <div class="small text-muted">Crop Sales, Farm Expenses, Produce Quantities & Rates</div>
             </div>
           </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body p-4">
+          <!-- Type & Category Row -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-5">
+              <label class="form-label small fw-bold text-dark">
+                <i class="bi bi-arrow-left-right me-1 text-primary"></i>Transaction Type (பரிவர்த்தனை வகை)
+              </label>
+              <div class="d-flex gap-2">
+                <input type="radio" class="btn-check" name="type" id="txnTypeIncome" value="income" onchange="onTxnTypeChange('income')" checked>
+                <label class="btn btn-outline-success btn-sm flex-fill fw-bold py-2" for="txnTypeIncome">
+                  <i class="bi bi-plus-circle-fill me-1"></i> Income (வரவு / விற்பனை)
+                </label>
+
+                <input type="radio" class="btn-check" name="type" id="txnTypeExpense" value="expense" onchange="onTxnTypeChange('expense')">
+                <label class="btn btn-outline-danger btn-sm flex-fill fw-bold py-2" for="txnTypeExpense">
+                  <i class="bi bi-dash-circle-fill me-1"></i> Expense (செலவு)
+                </label>
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label small fw-bold text-dark" data-i18n="category">Category (வகை)</label>
+              <select class="form-select" name="category" id="txnCategorySelect" onchange="onTxnCategorySelectChange()">
+                <!-- Populated dynamically based on Income / Expense -->
+              </select>
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label small fw-bold text-dark" data-i18n="date">Date (தேதி)</label>
+              <input type="date" class="form-control" name="date" id="txnDate" required>
+            </div>
+          </div>
+
+          <!-- Structured Crop & Agricultural Trade Section -->
+          <div class="card bg-light border p-3 mb-3 rounded" id="cropTradeSection">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="small fw-bold text-dark">
+                <i class="bi bi-basket-fill text-success me-1"></i> Produce & Quantity Details (விளைபொருள் விவரம் & எடை)
+              </span>
+              <span class="badge bg-success-subtle text-success border small">Auto-Calculates ₹ Amount</span>
+            </div>
+
+            <div class="row g-2 mb-2">
+              <div class="col-md-5">
+                <label class="form-label small text-muted mb-1">Crop / Commodity (பயிர் / விளைபொருள்)</label>
+                <input type="text" class="form-control" name="commodity" id="txnCommodity" list="commodityTradeList" placeholder="e.g. Kuchchi Kilangu (குச்சிக் கிழங்கு)">
+                <datalist id="commodityTradeList">
+                  <option value="Kuchchi Kilangu / Tapioca (மரவள்ளிக் கிழங்கு / குச்சிக் கிழங்கு)">
+                  <option value="Paddy / Rice (நெல் / பொன்னி / குண்டு நெல்)">
+                  <option value="Mature Coconut with Husk (முழு மட்டைத் தேங்காய்)">
+                  <option value="De-husked Coconut (மட்டை உரித்த தேங்காய்)">
+                  <option value="Copra - Milling (ஆட்டு கொப்பரைத் தேங்காய்)">
+                  <option value="Copra - Edible Ball (முழு உருண்டை கொப்பரை)">
+                  <option value="Sugarcane (கரும்பு)">
+                  <option value="Turmeric (மஞ்சள்)">
+                  <option value="Banana - Nendran / Poovan (வாழை)">
+                  <option value="Small Onion / Shallots (சின்ன வெங்காயம்)">
+                  <option value="Tomato (நாட்டுத் தக்காளி)">
+                  <option value="Groundnut (மணிலா / நிலக்கடலை)">
+                  <option value="Cotton (பருத்தி)">
+                  <option value="Cow Milk (பசும்பால்)">
+                </datalist>
+              </div>
+
+              <div class="col-md-3 col-6">
+                <label class="form-label small text-muted mb-1">Total Quantity (அளவு / எடை)</label>
+                <input type="number" step="0.01" class="form-control fw-bold tabular-nums" name="quantity" id="txnQuantity" placeholder="e.g. 14.5" oninput="calculateTxnTotal()">
+              </div>
+
+              <div class="col-md-4 col-6">
+                <label class="form-label small text-muted mb-1">Unit (அலகு)</label>
+                <select class="form-select fw-medium" name="unit" id="txnUnit" onchange="calculateTxnTotal()">
+                  <option value="Tons">Tons / டன்கள் (1,000 kg)</option>
+                  <option value="Quintals">Quintals / குவிண்டால் (100 kg)</option>
+                  <option value="Bags (75kg)">Bags (75 kg) / மூட்டை</option>
+                  <option value="Bags (50kg)">Bags (50 kg) / மூட்டை</option>
+                  <option value="Kg">Kg / கிலோகிராம்</option>
+                  <option value="Pieces">Pieces / எண்ணிக்கை (காய்)</option>
+                  <option value="Liters">Liters / லிட்டர்</option>
+                  <option value="Bunches">Bunches / வாழைத் தார்</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row g-2 align-items-center">
+              <div class="col-md-6">
+                <label class="form-label small text-muted mb-1" id="txnRateLabel">Rate / Price per Ton (₹ / டன் விலை)</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-white">₹</span>
+                  <input type="number" step="0.01" class="form-control fw-bold tabular-nums" name="rate_per_unit" id="txnRate" placeholder="e.g. 9200" oninput="calculateTxnTotal()">
+                </div>
+              </div>
+
+              <div class="col-md-6 pt-md-3">
+                <div id="txnCalcPreview" class="badge bg-white text-dark border p-2 w-100 text-start font-monospace small">
+                  <i class="bi bi-calculator me-1 text-primary"></i> Enter Quantity & Rate to auto-calculate total
+                </div>
+              </div>
+            </div>
+
+            <!-- Counterparty / Buyer Details -->
+            <div class="row g-2 mt-2 pt-2 border-top">
+              <div class="col-md-6">
+                <label class="form-label small text-muted mb-1">Buyer / Mill / Trader / Merchant (வாங்குபவர் / சேகோ ஆலை / வியாபாரி)</label>
+                <input type="text" class="form-control" name="buyer" placeholder="e.g. Salem Sago Factory / Trader Murugan">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small text-muted mb-1">Weighbridge Slip / Bill / Lorry # (எடை ரசீது / லாரி எண்)</label>
+                <input type="text" class="form-control" name="slip_no" placeholder="e.g. Weighbridge Slip #4892 &bull; TN-28-AB-1234">
+              </div>
+            </div>
+          </div>
+
+          <!-- Total Amount Row -->
           <div class="mb-3">
-            <label class="form-label small fw-bold text-muted">Notes / Details</label>
-            <input type="text" class="form-control" name="desc" placeholder="Details (vendor, quantity, receipt #)">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label class="form-label small fw-bold text-dark mb-0" data-i18n="amount">Total Amount (மொத்தத் தொகை ₹) <span class="text-danger">*</span></label>
+              <span class="small text-muted">Auto-calculated or enter flat lump sum</span>
+            </div>
+            <div class="input-group input-group-lg">
+              <span class="input-group-text bg-light fw-bold text-dark">₹</span>
+              <input type="number" step="0.01" class="form-control fw-bold text-success tabular-nums" name="amount" id="txnAmount" placeholder="0.00" required>
+            </div>
+          </div>
+
+          <!-- Notes / Description -->
+          <div class="mb-0">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label class="form-label small fw-bold text-dark mb-0">Notes / Detailed Description (குறிப்புகள் & கூடுதல் விவரங்கள்)</label>
+              <span class="small text-muted"><i class="bi bi-arrow-return-left me-1"></i>Pressing Enter adds a new line</span>
+            </div>
+            <textarea class="form-control" name="desc" id="txnDesc" rows="3" placeholder="Enter terms of payment, advance received, starch point, moisture deductions, plot/parcel location, vehicle driver contact, etc."></textarea>
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal" data-i18n="cancel_btn">Cancel</button>
-          <button type="submit" class="btn btn-sm btn-success" data-i18n="save_btn">Save Transaction</button>
+
+        <div class="modal-footer bg-light border-top py-2 d-flex justify-content-between">
+          <button type="button" class="btn btn-sm btn-light border px-3" data-bs-dismiss="modal" data-i18n="cancel_btn">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-success px-4 fw-bold" id="txnSubmitBtn" data-i18n="save_btn">
+            <i class="bi bi-check-circle-fill me-1"></i> Save Transaction
+          </button>
         </div>
       </form>
     </div>
@@ -162,8 +268,9 @@
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const today = new Date().toISOString().split("T")[0];
-    const txnDate = document.getElementById("txnDateInp");
+    const txnDate = document.getElementById("txnDate");
     if (txnDate) txnDate.value = today;
+    if (typeof onTxnTypeChange === "function") onTxnTypeChange("income");
     loadFinancials();
   });
 </script>

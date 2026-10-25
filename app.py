@@ -506,8 +506,21 @@ def api_financials():
 
     if request.method == "POST":
         data = request.json or request.form.to_dict()
-        if "amount" in data:
-            data["amount"] = float(data["amount"])
+        if "amount" in data and data["amount"] not in ("", None):
+            try:
+                data["amount"] = float(data["amount"])
+            except (ValueError, TypeError):
+                data["amount"] = 0.0
+        if "quantity" in data and data["quantity"] not in ("", None):
+            try:
+                data["quantity"] = float(data["quantity"])
+            except (ValueError, TypeError):
+                pass
+        if "rate_per_unit" in data and data["rate_per_unit"] not in ("", None):
+            try:
+                data["rate_per_unit"] = float(data["rate_per_unit"])
+            except (ValueError, TypeError):
+                pass
         item = db_store.save_user_item("financials", data, uname)
         return jsonify(item), 201
 

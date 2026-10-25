@@ -45,5 +45,51 @@
     "id": "d76e34d2-a547-4333-a159-801659362a2f",
     "updated_at": "2026-10-25T18:45:41.159684",
     "created_at": "2026-10-25T18:45:41.159692"
+  },
+  {
+    "plot_id": "a93eff88-5628-455d-8cfb-bb2314cb3f47",
+    "crop_name": "Kuchchi",
+    "variety": "Kilaiman",
+    "season": "Annual / Perennial",
+    "sowing_date": "2026-04-15",
+    "expected_harvest": "2027-03-15",
+    "area_cultivated_acres": "2.5",
+    "notes": "",
+    "status": "harvested",
+    "stage": "Harvested (அறுவடை முடிந்தது)",
+    "user_id": "manishankar",
+    "id": "3fbc44c2-694c-45b3-ac84-ef3d0dc9d226",
+    "updated_at": "2026-10-25T18:54:02.358870",
+    "created_at": "2026-10-25T18:54:02.358881"
+  },
+  {
+    "area_cultivated_acres": 1.5,
+    "crop_name": "Groundnut (மணிலா / நிலக்கடலை)",
+    "expected_harvest": "2027-02-07",
+    "plot_id": "plot_delta_01",
+    "season": "Samba / Thaladi (சம்பா / தாளடி)",
+    "sowing_date": "2026-10-25",
+    "variety": "TMV-7",
+    "status": "active",
+    "stage": "Sowing / Nursery (விதைப்பு / நாற்றங்கால்)",
+    "user_id": "farmer",
+    "id": "b99b1e0d-5047-4836-89e5-9f335715d3d9",
+    "updated_at": "2026-10-25T18:54:13.758770",
+    "created_at": "2026-10-25T18:54:13.758778"
+  },
+  {
+    "area_cultivated_acres": 1.5,
+    "crop_name": "Groundnut (மணிலா / நிலக்கடலை)",
+    "expected_harvest": "2027-02-07",
+    "plot_id": "plot_delta_01",
+    "season": "Samba / Thaladi (சம்பா / தாளடி)",
+    "sowing_date": "2026-10-25",
+    "variety": "TMV-7",
+    "status": "active",
+    "stage": "Sowing / Nursery (விதைப்பு / நாற்றங்கால்)",
+    "user_id": "farmer",
+    "id": "edefd96f-e8fb-4071-90d0-3a301e872704",
+    "updated_at": "2026-10-25T18:57:17.797195",
+    "created_at": "2026-10-25T18:57:17.797200"
   }
 ]
