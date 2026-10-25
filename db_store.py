@@ -80,6 +80,47 @@ def _write_local_json(collection_name, items):
             except Exception:
                 pass
 
+def _sync_seed_data_to_mongo():
+    """Synchronizes seed users and data records into MongoDB Atlas without overwriting live user data."""
+    if db is None:
+        return
+    try:
+        for cname in COLLECTIONS:
+            local_items = _read_local_json(cname)
+            if not local_items:
+                continue
+            col = db[cname]
+            for item in local_items:
+                m_id = str(item.get("id") or item.get("username") or uuid.uuid4())
+                m_doc = dict(item)
+                m_doc["_id"] = m_id
+                
+                query = {"$or": [{"_id": m_id}, {"id": m_id}]}
+                if "username" in item and item["username"]:
+                    query["$or"].append({"username": item["username"]})
+                
+                existing = col.find_one(query)
+                if existing:
+                    if cname == "users" and item.get("password_hash") != existing.get("password_hash"):
+                        col.update_one(
+                            {"_id": existing["_id"]},
+                            {"$set": {
+                                "password_hash": item.get("password_hash"),
+                                "farmer_name": item.get("farmer_name", existing.get("farmer_name")),
+                                "district": item.get("district", existing.get("district")),
+                                "language": item.get("language", existing.get("language")),
+                                "updated_at": item.get("updated_at", datetime.now().isoformat())
+                            }}
+                        )
+                else:
+                    col.insert_one(m_doc)
+        print("[OK] Successfully synchronized seed and user accounts to MongoDB Atlas!")
+    except Exception as e:
+        print(f"[WARN] Error syncing data to MongoDB Atlas: {e}")
+
+if db is not None:
+    _sync_seed_data_to_mongo()
+
 def get_all(collection_name):
     """Retrieve all items from collection, checking MongoDB first then local JSON."""
     if db is not None:
