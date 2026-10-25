@@ -12,8 +12,11 @@ if _MONGO_URI:
         from pymongo import MongoClient
         _client = MongoClient(_MONGO_URI, serverSelectionTimeoutMS=5000)
         _client.admin.command('ping')
-        db = _client.get_database("uzhavan_db")
-        print("[OK] Successfully connected to MongoDB Atlas (uzhavan_db)!")
+        try:
+            db = _client.get_default_database()
+        except Exception:
+            db = _client.get_database("uzhavan_db")
+        print(f"[OK] Successfully connected to MongoDB Atlas database: '{db.name}'!")
     except Exception as e:
         print(f"[WARN] MongoDB Atlas connection error (fallback to local JSON): {e}")
         db = None
@@ -82,15 +85,41 @@ def get_all(collection_name):
                         doc.pop("_id", None)
                 _write_local_json(collection_name, docs)
                 return docs
+            else:
+                # If collection is empty in MongoDB, seed from local JSON if available
+                local_docs = _read_local_json(collection_name)
+                if local_docs:
+                    for d in local_docs:
+                        m_doc = dict(d)
+                        m_id = str(d.get("id") or uuid.uuid4())
+                        m_doc["_id"] = m_id
+                        col.replace_one({"_id": m_id}, m_doc, upsert=True)
+                    return local_docs
+                return []
         except Exception as e:
             print(f"MongoDB get_all error for {collection_name}: {e}")
 
     return _read_local_json(collection_name)
 
 def get_by_id(collection_name, item_id):
+    if not item_id:
+        return None
+    item_id = str(item_id)
+    if db is not None:
+        try:
+            col = db[collection_name]
+            doc = col.find_one({"$or": [{"_id": item_id}, {"id": item_id}]})
+            if doc:
+                if "_id" in doc:
+                    doc["id"] = str(doc["_id"])
+                    doc.pop("_id", None)
+                return doc
+        except Exception as e:
+            print(f"MongoDB get_by_id error for {collection_name}: {e}")
+
     items = get_all(collection_name)
     for item in items:
-        if str(item.get("id")) == str(item_id):
+        if str(item.get("id")) == item_id:
             return item
     return None
 
@@ -106,6 +135,15 @@ def save_item(collection_name, item_data):
 
     item_id = str(item_data["id"])
 
+    if db is not None:
+        try:
+            col = db[collection_name]
+            mongo_doc = dict(item_data)
+            mongo_doc["_id"] = item_id
+            col.replace_one({"_id": item_id}, mongo_doc, upsert=True)
+        except Exception as e:
+            print(f"MongoDB save_item error for {collection_name}: {e}")
+
     items = _read_local_json(collection_name)
     updated = False
     for idx, item in enumerate(items):
@@ -117,30 +155,21 @@ def save_item(collection_name, item_data):
         items.append(item_data)
     _write_local_json(collection_name, items)
 
-    if db is not None:
-        try:
-            col = db[collection_name]
-            mongo_doc = dict(item_data)
-            mongo_doc["_id"] = item_id
-            col.replace_one({"_id": item_id}, mongo_doc, upsert=True)
-        except Exception as e:
-            print(f"MongoDB save_item error for {collection_name}: {e}")
-
     return item_data
 
 def delete_item(collection_name, item_id):
     """Delete item from MongoDB and local JSON store."""
     item_id = str(item_id)
-    items = _read_local_json(collection_name)
-    items = [item for item in items if str(item.get("id")) != item_id]
-    _write_local_json(collection_name, items)
-
     if db is not None:
         try:
             col = db[collection_name]
-            col.delete_one({"_id": item_id})
+            col.delete_one({"$or": [{"_id": item_id}, {"id": item_id}]})
         except Exception as e:
             print(f"MongoDB delete_item error for {collection_name}: {e}")
+
+    items = _read_local_json(collection_name)
+    items = [item for item in items if str(item.get("id")) != item_id]
+    _write_local_json(collection_name, items)
     return True
 
 # ========================================================
@@ -151,13 +180,34 @@ def get_user_by_username(username):
     if not username:
         return None
     uname = username.strip().lower()
+
+    if db is not None:
+        try:
+            col = db["users"]
+            doc = col.find_one({"$or": [{"username": uname}, {"id": uname}, {"_id": uname}]})
+            if doc:
+                if "_id" in doc:
+                    doc["id"] = str(doc["_id"])
+                    doc.pop("_id", None)
+                return doc
+            if col.count_documents({}) == 0:
+                get_all("users")
+                doc = col.find_one({"$or": [{"username": uname}, {"id": uname}, {"_id": uname}]})
+                if doc:
+                    if "_id" in doc:
+                        doc["id"] = str(doc["_id"])
+                        doc.pop("_id", None)
+                    return doc
+        except Exception as e:
+            print(f"MongoDB get_user_by_username error: {e}")
+
     users = get_all("users")
     for u in users:
         if u.get("username", "").lower() == uname or str(u.get("id", "")).lower() == uname:
             return u
     return None
 
-def create_user(username, password, farmer_name, farm_name, district, taluk="", village="", language="ta"):
+def create_user(username, password, farmer_name, farm_name, district, taluk="", village="", language="en"):
     uname = username.strip().lower()
     if get_user_by_username(uname):
         return None, "Username already exists. Please choose another or login."
@@ -171,7 +221,7 @@ def create_user(username, password, farmer_name, farm_name, district, taluk="", 
         "district": district.strip() or "Thanjavur",
         "taluk": taluk.strip(),
         "village": village.strip(),
-        "language": language or "ta",
+        "language": language or "en",
         "created_at": datetime.now().isoformat()
     }
     save_item("users", user_doc)
@@ -190,7 +240,6 @@ def update_user_profile(username, update_data):
     if not user:
         return None
     
-    # Do not overwrite username or id
     update_data.pop("username", None)
     update_data.pop("id", None)
     
@@ -204,16 +253,43 @@ def update_user_profile(username, update_data):
     return user
 
 # ========================================================
-# USER-SCOPED ENTITY HELPERS
+# USER-SCOPED ENTITY HELPERS (DATA ISOLATED BY LOGIN)
 # ========================================================
 
 def get_user_items(collection_name, username):
     """Retrieves all items belonging specifically to the logged-in user."""
-    all_items = get_all(collection_name)
     if not username:
-        return all_items
+        return get_all(collection_name)
     uname = username.strip().lower()
-    # If item has no user_id, assign to default demo farmer so existing data displays
+
+    if db is not None:
+        try:
+            col = db[collection_name]
+            if uname == "farmer":
+                query = {"$or": [{"user_id": uname}, {"user_id": "farmer"}, {"user_id": {"$exists": False}}]}
+            else:
+                query = {"user_id": uname}
+            docs = list(col.find(query))
+            if docs:
+                for doc in docs:
+                    if "_id" in doc:
+                        doc["id"] = str(doc["_id"])
+                        doc.pop("_id", None)
+                return docs
+            # If collection is completely empty in MongoDB, trigger seed check
+            if col.count_documents({}) == 0:
+                get_all(collection_name)
+                docs = list(col.find(query))
+                for doc in docs:
+                    if "_id" in doc:
+                        doc["id"] = str(doc["_id"])
+                        doc.pop("_id", None)
+                return docs
+            return []
+        except Exception as e:
+            print(f"MongoDB get_user_items error for {collection_name}: {e}")
+
+    all_items = get_all(collection_name)
     return [i for i in all_items if i.get("user_id", "farmer").lower() == uname]
 
 def save_user_item(collection_name, item_data, username):

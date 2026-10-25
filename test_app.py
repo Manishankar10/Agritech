@@ -541,6 +541,81 @@ class TestUzhavanDesk(unittest.TestCase):
         self.assertEqual(updated["total_expenses"], 13000.0)
         self.assertEqual(updated["amount"], round(gross_produce_val - 13000.0, 2))
 
+    def test_multi_user_data_isolation(self):
+        """Verifies data isolation across different logged-in users (plots, crops, transactions)."""
+        import uuid
+        user_a = f"farmer_a_{uuid.uuid4().hex[:4]}"
+        user_b = f"farmer_b_{uuid.uuid4().hex[:4]}"
+
+        # 1. Sign up User A
+        self.client.post("/signup", data={
+            "username": user_a,
+            "password": "password123",
+            "farmer_name": "Farmer A",
+            "farm_name": "Farm A",
+            "district": "Salem"
+        }, follow_redirects=True)
+
+        # User A adds a plot and transaction
+        plot_a_res = self.client.post("/api/plots", json={"name": "Alpha Field", "area_acres": 5.0})
+        self.assertEqual(plot_a_res.status_code, 201)
+
+        txn_a_res = self.client.post("/api/financials", json={
+            "type": "income",
+            "category": "Crop Sale",
+            "amount": 25000.0,
+            "date": date.today().isoformat()
+        })
+        self.assertEqual(txn_a_res.status_code, 201)
+
+        # Logout User A
+        self.client.get("/logout")
+
+        # 2. Sign up User B
+        self.client.post("/signup", data={
+            "username": user_b,
+            "password": "password123",
+            "farmer_name": "Farmer B",
+            "farm_name": "Farm B",
+            "district": "Erode"
+        }, follow_redirects=True)
+
+        # User B adds their own plot and transaction
+        plot_b_res = self.client.post("/api/plots", json={"name": "Beta Plantation", "area_acres": 12.0})
+        self.assertEqual(plot_b_res.status_code, 201)
+
+        txn_b_res = self.client.post("/api/financials", json={
+            "type": "expense",
+            "category": "Fertilizer",
+            "amount": 6000.0,
+            "date": date.today().isoformat()
+        })
+        self.assertEqual(txn_b_res.status_code, 201)
+
+        # Verify User B sees ONLY User B's plot and transaction
+        plots_b = json.loads(self.client.get("/api/plots").data)
+        plot_names_b = [p["name"] for p in plots_b]
+        self.assertIn("Beta Plantation", plot_names_b)
+        self.assertNotIn("Alpha Field", plot_names_b)
+
+        txns_b = json.loads(self.client.get("/api/financials").data)
+        self.assertEqual(len(txns_b), 1)
+        self.assertEqual(txns_b[0]["amount"], 6000.0)
+
+        # Logout User B, Login as User A
+        self.client.get("/logout")
+        self.client.post("/login", data={"username": user_a, "password": "password123"}, follow_redirects=True)
+
+        # Verify User A sees ONLY User A's plot and transaction
+        plots_a = json.loads(self.client.get("/api/plots").data)
+        plot_names_a = [p["name"] for p in plots_a]
+        self.assertIn("Alpha Field", plot_names_a)
+        self.assertNotIn("Beta Plantation", plot_names_a)
+
+        txns_a = json.loads(self.client.get("/api/financials").data)
+        self.assertEqual(len(txns_a), 1)
+        self.assertEqual(txns_a[0]["amount"], 25000.0)
+
 if __name__ == "__main__":
     unittest.main()
 
