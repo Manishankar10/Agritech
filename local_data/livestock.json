@@ -1,0 +1,59 @@
+[
+  {
+    "id": "animal_tn01",
+    "tag_id": "TN-01-LAKSHMI",
+    "name": "Lakshmi (லட்சுமி)",
+    "species": "cow",
+    "breed": "Kangayam (காங்கேயம்)",
+    "gender": "female",
+    "age_years": 4.5,
+    "lactation_number": 2,
+    "daily_milk_avg": 9.5,
+    "status": "pregnant",
+    "notes": "Purebred Kangayam native cow. Calm temperament.",
+    "updated_at": "2026-10-25T17:49:48.697234",
+    "created_at": "2026-10-25T17:49:48.697248"
+  },
+  {
+    "id": "animal_tn02",
+    "tag_id": "TN-02-KAMALAM",
+    "name": "Kamalam (கமலம்)",
+    "species": "cow",
+    "breed": "Jersey Cross (ஜெர்சி கலப்பினம்)",
+    "gender": "female",
+    "age_years": 3.5,
+    "lactation_number": 1,
+    "daily_milk_avg": 13.0,
+    "status": "milking",
+    "notes": "High yield milch cow. Yields 13-14 liters daily.",
+    "updated_at": "2026-10-25T17:49:48.699941",
+    "created_at": "2026-10-25T17:49:48.699959"
+  },
+  {
+    "id": "animal_gt01",
+    "tag_id": "GT-01-MEENA",
+    "name": "Meena (மீனா)",
+    "species": "goat",
+    "breed": "Kanni Aadu (கன்னி ஆடு)",
+    "gender": "female",
+    "age_years": 2.0,
+    "lactation_number": 1,
+    "status": "pregnant",
+    "notes": "Indigenous hardy goat from southern TN.",
+    "updated_at": "2026-10-25T17:49:48.731258",
+    "created_at": "2026-10-25T17:49:48.731274"
+  },
+  {
+    "id": "animal_gt02",
+    "tag_id": "GT-02-RAJA",
+    "name": "Raja (ராஜா - கிடா)",
+    "species": "goat",
+    "breed": "Salem Black (சேலம் கருப்பு)",
+    "gender": "male",
+    "age_years": 2.5,
+    "status": "healthy",
+    "notes": "Breeding buck. Vigorous and healthy.",
+    "updated_at": "2026-10-25T17:49:48.764779",
+    "created_at": "2026-10-25T17:49:48.764796"
+  }
+]

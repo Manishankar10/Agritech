@@ -1,0 +1,98 @@
+[
+  {
+    "type": "expense",
+    "category": "Seeds / நாற்று",
+    "plot_id": "plot_cauvery_delta",
+    "crop_id": "crop_cr1009_paddy",
+    "amount": 3400,
+    "date": "2026-09-07",
+    "desc": "CR-1009 Certified Paddy Seed bags",
+    "id": "0c9c7ffb-5a42-40f2-9fac-88c842df2cf9",
+    "updated_at": "2026-10-25T17:49:48.973774",
+    "created_at": "2026-10-25T17:49:48.973785"
+  },
+  {
+    "type": "expense",
+    "category": "Tractor & Machinery / உழவு கூலி",
+    "plot_id": "plot_cauvery_delta",
+    "crop_id": "crop_cr1009_paddy",
+    "amount": 5200,
+    "date": "2026-09-11",
+    "desc": "Cage wheel puddling & rotavator ploughing",
+    "id": "a0ccd017-fb3f-4d2a-ab69-599245e8cee2",
+    "updated_at": "2026-10-25T17:49:48.975542",
+    "created_at": "2026-10-25T17:49:48.975555"
+  },
+  {
+    "type": "expense",
+    "category": "Labor / நடவுக் கூலி",
+    "plot_id": "plot_cauvery_delta",
+    "crop_id": "crop_cr1009_paddy",
+    "amount": 7600,
+    "date": "2026-09-15",
+    "desc": "Paddy transplanting labor (12 women laborers)",
+    "id": "6e960dc5-bd11-4b32-9f12-db2c2f6cd376",
+    "updated_at": "2026-10-25T17:49:49.007317",
+    "created_at": "2026-10-25T17:49:49.007346"
+  },
+  {
+    "type": "expense",
+    "category": "Fertilizer / உரங்கள்",
+    "plot_id": "plot_cauvery_delta",
+    "crop_id": "crop_cr1009_paddy",
+    "amount": 4500,
+    "date": "2026-09-30",
+    "desc": "DAP 2 bags & Potash 1 bag basal dressing",
+    "id": "d066d10c-c9fb-4070-b189-7d02b3bf9cea",
+    "updated_at": "2026-10-25T17:49:49.038307",
+    "created_at": "2026-10-25T17:49:49.038320"
+  },
+  {
+    "type": "expense",
+    "category": "Cattle Feed / கால்நடை தீவனம்",
+    "plot_id": "",
+    "crop_id": "",
+    "amount": 3800,
+    "date": "2026-10-10",
+    "desc": "Cotton seed cake (பருத்திக் கொட்டை) & Wheat bran 2 bags",
+    "id": "79d5b600-951c-47b8-bacf-52d5f3d191d6",
+    "updated_at": "2026-10-25T17:49:49.070715",
+    "created_at": "2026-10-25T17:49:49.070728"
+  },
+  {
+    "type": "income",
+    "category": "Crop Sale / பயிர் விற்பனை",
+    "plot_id": "plot_cauvery_delta",
+    "crop_id": "",
+    "amount": 84000,
+    "date": "2026-08-26",
+    "desc": "Previous Kuruvai Harvest 35 bags to Regulated Market",
+    "id": "512add63-3d23-4a40-8c91-7e27b186a4a8",
+    "updated_at": "2026-10-25T17:49:49.106438",
+    "created_at": "2026-10-25T17:49:49.106458"
+  },
+  {
+    "type": "income",
+    "category": "Milk Sale / பால் விற்பனை",
+    "plot_id": "",
+    "crop_id": "",
+    "amount": 15600,
+    "date": "2026-10-15",
+    "desc": "Aavin Milk Society Fortnightly payment",
+    "id": "9170cb3e-78b8-40ae-9d57-d1ac5f732a04",
+    "updated_at": "2026-10-25T17:49:49.139332",
+    "created_at": "2026-10-25T17:49:49.139345"
+  },
+  {
+    "type": "income",
+    "category": "Livestock Sale / ஆடு விற்பனை",
+    "plot_id": "",
+    "crop_id": "",
+    "amount": 17000,
+    "date": "2026-10-05",
+    "desc": "Sale of 2 male goat kids (கிடா குட்டிகள்)",
+    "id": "f051cdf5-ec87-411d-9b8a-28e91b1edd24",
+    "updated_at": "2026-10-25T17:49:49.173931",
+    "created_at": "2026-10-25T17:49:49.173945"
+  }
+]

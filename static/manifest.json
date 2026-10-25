@@ -1,0 +1,22 @@
+{
+  "name": "Uzhavan Desk - Tamil Nadu Farm Manager",
+  "short_name": "Uzhavan",
+  "description": "Tamil Nadu Agriculture, Livestock Breeding, Mandi Prices and Farm P&L Manager",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#15803d",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/static/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

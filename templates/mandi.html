@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="card card-custom p-4 bg-white">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+        <div>
+          <h4 class="fw-bold text-success mb-1" data-i18n="mandi_title">Tamil Nadu Regulated Market Prices</h4>
+          <div class="text-muted small" data-i18n="mandi_subtitle">Real-time daily wholesale prices across all 38 Tamil Nadu districts & Uzhavar Sandhai</div>
+        </div>
+        <div>
+          <button class="btn btn-outline-success btn-sm" onclick="loadMandiPrices()">
+            <i class="bi bi-arrow-clockwise"></i> Refresh Prices
+          </button>
+        </div>
+      </div>
+
+      <hr class="my-3">
+
+      <!-- Filters Row -->
+      <div class="row g-2 align-items-center">
+        <div class="col-md-4">
+          <label class="form-label small fw-bold text-muted" data-i18n="select_district">Select District</label>
+          <select id="mandiDistrictSelect" class="form-select" onchange="loadMandiPrices()">
+            <option value="all" data-i18n="all_districts">-- All Tamil Nadu Districts --</option>
+            {% for d in districts %}
+            <option value="{{ d }}" {% if d == settings.district %}selected{% endif %}>{{ d }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-5">
+          <label class="form-label small fw-bold text-muted">Search Commodity</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+            <input type="text" id="mandiSearchInput" class="form-control" placeholder="Search (e.g. Paddy, Turmeric, Banana, Tomato...)" oninput="loadMandiPrices()">
+          </div>
+        </div>
+
+        <div class="col-md-3 mt-md-4">
+          <div class="d-flex gap-1 overflow-auto">
+            <button class="btn btn-sm btn-light border" onclick="quickFilter('')">All</button>
+            <button class="btn btn-sm btn-light border" onclick="quickFilter('Paddy')">Paddy (நெல்)</button>
+            <button class="btn btn-sm btn-light border" onclick="quickFilter('Turmeric')">Turmeric (மஞ்சள்)</button>
+            <button class="btn btn-sm btn-light border" onclick="quickFilter('Banana')">Banana (வாழை)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Prices Table -->
+<div class="row g-3">
+  <div class="col-12">
+    <div class="card card-custom overflow-hidden">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 mandi-table">
+          <thead>
+            <tr>
+              <th data-i18n="col_commodity">Commodity & Variety</th>
+              <th data-i18n="col_market">Market / APMC</th>
+              <th data-i18n="col_district">District</th>
+              <th data-i18n="col_min_price">Min Price</th>
+              <th data-i18n="col_max_price">Max Price</th>
+              <th data-i18n="col_modal_price">Modal Price</th>
+              <th data-i18n="col_change">Trend</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="mandiTableBody">
+            <tr>
+              <td colspan="8" class="text-center py-4">
+                <div class="spinner-border text-success" role="status"></div> Loading daily mandi prices...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Price Trend Modal -->
+<div class="modal fade" id="trendModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="trendModalTitle">15-Day Price Trend</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div style="height: 320px;">
+          <canvas id="mandiTrendChart"></canvas>
+        </div>
+        <div class="small text-muted text-center mt-3">
+          Daily modal wholesale rates recorded at Tamil Nadu Regulated Agricultural Produce Markets.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function quickFilter(val) {
+    document.getElementById("mandiSearchInput").value = val;
+    loadMandiPrices();
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    loadMandiPrices();
+  });
+</script>
+{% endblock %}

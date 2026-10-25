@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: uzhavan-farm-desk
+    env: python
+    region: singapore # Closest low-latency region to Tamil Nadu / South India
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app --workers=2 --threads=2 --timeout=120"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.12
+      - key: MONGO_URI
+        sync: false # Set in Render Dashboard with your MongoDB Atlas connection string
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATA_GOV_IN_API_KEY
+        sync: false

@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center bg-white p-3 rounded shadow-sm border">
+      <div>
+        <h4 class="fw-bold text-success mb-1" data-i18n="fin_title">Farm Accounting & P&L Statement</h4>
+        <div class="text-muted small">Comprehensive farm profit, expenses, sales returns, and cost of cultivation analytics</div>
+      </div>
+      <div class="mt-2 mt-md-0">
+        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#txnModal">
+          <i class="bi bi-plus-lg"></i> <span data-i18n="add_txn_btn">Record Transaction</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Financial KPIs -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="kpi-card h-100">
+      <div class="kpi-icon bg-primary-subtle text-primary">
+        <i class="bi bi-cash-stack"></i>
+      </div>
+      <div class="kpi-label" data-i18n="kpi_revenue">Total Revenue</div>
+      <div class="kpi-value text-primary" id="finIncome">₹--</div>
+      <div class="small text-muted mt-1">Crops & Milk Sales</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="kpi-card h-100">
+      <div class="kpi-icon bg-danger-subtle text-danger">
+        <i class="bi bi-receipt"></i>
+      </div>
+      <div class="kpi-label" data-i18n="kpi_expense">Total Expenses</div>
+      <div class="kpi-value text-danger" id="finExpense">₹--</div>
+      <div class="small text-muted mt-1">Inputs & Labor</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="kpi-card h-100">
+      <div class="kpi-icon bg-success-subtle text-success">
+        <i class="bi bi-trophy"></i>
+      </div>
+      <div class="kpi-label" data-i18n="kpi_net_profit">Net Farm Profit</div>
+      <div class="kpi-value text-success" id="finNetProfit">₹--</div>
+      <div class="small text-muted mt-1">Realized Net Return</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="kpi-card h-100">
+      <div class="kpi-icon bg-info-subtle text-info">
+        <i class="bi bi-percent"></i>
+      </div>
+      <div class="kpi-label" data-i18n="roi_label">Return on Investment</div>
+      <div class="kpi-value text-info" id="finRoi">--%</div>
+      <div class="small text-muted mt-1">ROI on farm expenditures</div>
+    </div>
+  </div>
+</div>
+
+<!-- Expense Breakdown Chart & Cash Flow -->
+<div class="row g-3 mb-4">
+  <div class="col-lg-5">
+    <div class="card card-custom p-3 h-100 bg-white">
+      <h6 class="fw-bold text-dark mb-2" data-i18n="breakdown_expenses">Expense Breakdown by Category</h6>
+      <div style="height: 250px; position: relative;">
+        <canvas id="expenseChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card card-custom p-3 h-100 bg-white">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="fw-bold text-dark mb-0" data-i18n="recent_txns">Recent Farm Transactions</h6>
+        <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#txnModal">
+          + Add Entry
+        </button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle small mb-0">
+          <thead class="table-light">
+            <tr>
+              <th data-i18n="date">Date</th>
+              <th>Type</th>
+              <th data-i18n="category">Category</th>
+              <th>Description</th>
+              <th data-i18n="amount">Amount</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="txnsTableBody">
+            <tr>
+              <td colspan="6" class="text-center py-4 text-muted">
+                <div class="spinner-border spinner-border-sm text-success" role="status"></div> Loading transactions...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Transaction Modal (Income / Expense) -->
+<div class="modal fade" id="txnModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="txnForm">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title" data-i18n="add_txn_btn">Record Transaction</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label fw-bold" data-i18n="type_expense">Transaction Type</label>
+            <select class="form-select" name="type" required>
+              <option value="expense">Expense (செலவு)</option>
+              <option value="income">Income (வரவு)</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold" data-i18n="category">Category</label>
+            <input type="text" class="form-control" name="category" list="catSuggestionsFin" placeholder="e.g. Seeds, Fertilizer, Labor, Diesel, Milk..." required>
+            <datalist id="catSuggestionsFin">
+              <option value="Seeds / நாற்று">
+              <option value="Fertilizer / உரங்கள்">
+              <option value="Pesticides / பூச்சிக்கொல்லி">
+              <option value="Labor / கூலி">
+              <option value="Tractor & Machinery / உழவு கூலி">
+              <option value="Diesel & Fuel / டீசல்">
+              <option value="Cattle Feed / கால்நடை தீவனம்">
+              <option value="Veterinary Care / மருத்துவச் செலவு">
+              <option value="Crop Sale / பயிர் விற்பனை">
+              <option value="Milk Sale / பால் விற்பனை">
+              <option value="Livestock Sale / ஆடு மாடு விற்பனை">
+            </datalist>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label fw-bold" data-i18n="amount">Amount (₹)</label>
+              <input type="number" step="0.01" class="form-control" name="amount" required placeholder="0.00">
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-bold" data-i18n="date">Date</label>
+              <input type="date" class="form-control" name="date" id="txnDateInp" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Notes & Description</label>
+            <input type="text" class="form-control" name="desc" placeholder="Details (vendor, quantity, receipt #)">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cancel_btn">Cancel</button>
+          <button type="submit" class="btn btn-success" data-i18n="save_btn">Save Transaction</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const today = new Date().toISOString().split("T")[0];
+    const txnDate = document.getElementById("txnDateInp");
+    if (txnDate) txnDate.value = today;
+
+    loadFinancials();
+  });
+</script>
+{% endblock %}

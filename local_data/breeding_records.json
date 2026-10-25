@@ -1,0 +1,30 @@
+[
+  {
+    "id": "breed_rec_lakshmi",
+    "animal_id": "animal_tn01",
+    "animal_tag": "TN-01-LAKSHMI",
+    "event_type": "insemination",
+    "date": "2026-06-22",
+    "semen_bull_info": "Kangayam Pedigree Bull #KG-402 (Erode Semen Station)",
+    "technician": "Dr. Senthil, VAS Thiruvidaimarudur",
+    "status": "active",
+    "pd_confirmed": true,
+    "notes": "PD confirmed positive at 65 days.",
+    "updated_at": "2026-10-25T17:49:48.805313",
+    "created_at": "2026-10-25T17:49:48.805323"
+  },
+  {
+    "id": "breed_rec_meena",
+    "animal_id": "animal_gt01",
+    "animal_tag": "GT-01-MEENA",
+    "event_type": "mating",
+    "date": "2026-07-29",
+    "semen_bull_info": "Salem Black Buck (Raja)",
+    "technician": "Natural service",
+    "status": "active",
+    "pd_confirmed": true,
+    "notes": "Gestation progressing well. Due in approx 62 days.",
+    "updated_at": "2026-10-25T17:49:48.807086",
+    "created_at": "2026-10-25T17:49:48.807100"
+  }
+]

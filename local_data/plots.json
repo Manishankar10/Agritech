@@ -1,0 +1,24 @@
+[
+  {
+    "id": "plot_cauvery_delta",
+    "name": "Plot A - Vadakku Kadu (வடக்கு காடு)",
+    "area_acres": 3.5,
+    "soil_type": "Clay Loam (வண்டல் மண்)",
+    "water_source": "Canal & Borewell (வாய்க்கால் & ஆழ்துளை)",
+    "survey_no": "142/2B",
+    "location": "Thiruvidaimarudur, Thanjavur",
+    "updated_at": "2026-10-25T17:49:48.642731",
+    "created_at": "2026-10-25T17:49:48.642741"
+  },
+  {
+    "id": "plot_drip_thottam",
+    "name": "Plot B - Thottam (மேற்கு தோட்டம்)",
+    "area_acres": 2.0,
+    "soil_type": "Red Loam (செம்மண்)",
+    "water_source": "Drip Irrigation & Well (சொட்டு நீர் & கிணறு)",
+    "survey_no": "88/1A",
+    "location": "Thiruvidaimarudur, Thanjavur",
+    "updated_at": "2026-10-25T17:49:48.644718",
+    "created_at": "2026-10-25T17:49:48.644734"
+  }
+]
