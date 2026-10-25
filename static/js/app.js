@@ -247,6 +247,8 @@ async function loadCropsAndPlots() {
     ]);
     const crops = await cropsRes.json();
     const plots = await plotsRes.json();
+    window.UzhavanApp.crops = crops || [];
+    window.UzhavanApp.plots = plots || [];
 
     // Populate plot dropdown in planting modal
     const plotSelect = document.getElementById("cropPlotId");
@@ -267,9 +269,14 @@ async function loadCropsAndPlots() {
               <div class="card card-custom p-3 h-100">
                 <div class="d-flex justify-content-between align-items-start">
                   <h6 class="fw-bold mb-1">${p.name}</h6>
-                  <button class="btn btn-sm btn-link text-danger p-0" onclick="deletePlot('${p.id}')">
-                    <i class="bi bi-trash"></i>
-                  </button>
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-link text-primary p-0" title="Edit Plot" onclick="editPlot('${p.id}')">
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button class="btn btn-sm btn-link text-danger p-0" title="Delete Plot" onclick="deletePlot('${p.id}')">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
                 </div>
                 <div class="small text-secondary mb-2">Survey No: ${p.survey_no || "N/A"}</div>
                 <div class="row g-2 mt-auto">
@@ -312,9 +319,12 @@ async function loadCropsAndPlots() {
                   <i class="bi bi-calendar-event"></i> Sown: ${c.sowing_date} | Harvest: ${c.expected_harvest || "TBD"}
                 </div>
                 ${c.notes ? `<div class="small bg-light p-2 rounded text-muted mb-3">${c.notes}</div>` : ""}
-                <div class="d-flex gap-2 mt-auto">
+                <div class="d-flex gap-2 mt-auto flex-wrap align-items-center">
                   <button class="btn btn-sm btn-outline-success" onclick="advanceCropStage('${c.id}', '${c.stage}')">
                     <i class="bi bi-arrow-up-circle"></i> Next Stage
+                  </button>
+                  <button class="btn btn-sm btn-outline-primary" onclick="editCrop('${c.id}')">
+                    <i class="bi bi-pencil-square"></i> Edit
                   </button>
                   <button class="btn btn-sm btn-outline-danger ms-auto" onclick="deleteCrop('${c.id}')">
                     <i class="bi bi-trash"></i>
@@ -331,6 +341,102 @@ async function loadCropsAndPlots() {
   } catch (err) {
     console.error("Crops load error:", err);
   }
+}
+
+function editPlot(plotId) {
+  const plot = (window.UzhavanApp.plots || []).find(p => String(p.id) === String(plotId));
+  if (!plot) return;
+
+  const form = document.getElementById("plotForm");
+  if (!form) return;
+
+  form.dataset.editId = plotId;
+  const nameInp = document.getElementById("plotName") || form.querySelector("input[name='name']");
+  const areaInp = document.getElementById("plotArea") || form.querySelector("input[name='area_acres']");
+  const survInp = document.getElementById("plotSurvey") || form.querySelector("input[name='survey_no']");
+  const soilInp = document.getElementById("plotSoil") || form.querySelector("select[name='soil_type']");
+  const waterInp = document.getElementById("plotWater") || form.querySelector("input[name='water_source']");
+
+  if (nameInp) nameInp.value = plot.name || "";
+  if (areaInp) areaInp.value = plot.area_acres || "";
+  if (survInp) survInp.value = plot.survey_no || "";
+  if (soilInp) soilInp.value = plot.soil_type || "";
+  if (waterInp) waterInp.value = plot.water_source || "";
+
+  const titleEl = document.getElementById("plotModalTitle");
+  if (titleEl) titleEl.innerText = "Edit Farmland Plot (நிலத்தை திருத்து)";
+  const submitBtn = document.getElementById("plotSubmitBtn") || form.querySelector("button[type='submit']");
+  if (submitBtn) submitBtn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Update Plot';
+
+  const modalEl = document.getElementById("plotModal");
+  if (modalEl) {
+    const modal = bootstrap.Modal.getInstance(modalEl) || (bootstrap.Modal.getOrCreateInstance ? bootstrap.Modal.getOrCreateInstance(modalEl) : new bootstrap.Modal(modalEl));
+    modal.show();
+  }
+}
+
+function resetPlotModal() {
+  const form = document.getElementById("plotForm");
+  if (!form) return;
+  form.reset();
+  delete form.dataset.editId;
+  const titleEl = document.getElementById("plotModalTitle");
+  if (titleEl) titleEl.innerText = "Register Farmland Plot";
+  const submitBtn = document.getElementById("plotSubmitBtn") || form.querySelector("button[type='submit']");
+  if (submitBtn) submitBtn.innerText = "Save Plot";
+}
+
+function editCrop(cropId) {
+  const crop = (window.UzhavanApp.crops || []).find(c => String(c.id) === String(cropId));
+  if (!crop) return;
+
+  const form = document.getElementById("cropForm");
+  if (!form) return;
+
+  form.dataset.editId = cropId;
+  const plotSel = document.getElementById("cropPlotId");
+  const nameInp = document.getElementById("cropName") || form.querySelector("input[name='crop_name']");
+  const varInp = document.getElementById("cropVariety") || form.querySelector("input[name='variety']");
+  const seasonSel = document.getElementById("cropSeason") || form.querySelector("select[name='season']");
+  const sowInp = document.getElementById("cropSowingDate") || form.querySelector("input[name='sowing_date']");
+  const harvInp = document.getElementById("cropHarvestDate") || form.querySelector("input[name='expected_harvest']");
+  const areaInp = document.getElementById("cropArea") || form.querySelector("input[name='area_cultivated_acres']");
+  const stageSel = document.getElementById("cropStageSelect") || form.querySelector("select[name='stage']");
+  const statusSel = document.getElementById("cropStatusSelect") || form.querySelector("select[name='status']");
+  const notesInp = document.getElementById("cropNotes") || form.querySelector("textarea[name='notes']");
+
+  if (plotSel) plotSel.value = crop.plot_id || "";
+  if (nameInp) nameInp.value = crop.crop_name || "";
+  if (varInp) varInp.value = crop.variety || "";
+  if (seasonSel) seasonSel.value = crop.season || "";
+  if (sowInp) sowInp.value = crop.sowing_date || "";
+  if (harvInp) harvInp.value = crop.expected_harvest || "";
+  if (areaInp) areaInp.value = crop.area_cultivated_acres || "";
+  if (stageSel && crop.stage) stageSel.value = crop.stage;
+  if (statusSel && crop.status) statusSel.value = crop.status;
+  if (notesInp) notesInp.value = crop.notes || "";
+
+  const titleEl = document.getElementById("cropModalTitle");
+  if (titleEl) titleEl.innerText = "Edit Crop Planting (பயிரை திருத்து)";
+  const submitBtn = document.getElementById("cropSubmitBtn") || form.querySelector("button[type='submit']");
+  if (submitBtn) submitBtn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Update Crop';
+
+  const modalEl = document.getElementById("cropModal");
+  if (modalEl) {
+    const modal = bootstrap.Modal.getInstance(modalEl) || (bootstrap.Modal.getOrCreateInstance ? bootstrap.Modal.getOrCreateInstance(modalEl) : new bootstrap.Modal(modalEl));
+    modal.show();
+  }
+}
+
+function resetCropModal() {
+  const form = document.getElementById("cropForm");
+  if (!form) return;
+  form.reset();
+  delete form.dataset.editId;
+  const titleEl = document.getElementById("cropModalTitle");
+  if (titleEl) titleEl.innerText = "Plant New Crop";
+  const submitBtn = document.getElementById("cropSubmitBtn") || form.querySelector("button[type='submit']");
+  if (submitBtn) submitBtn.innerText = "Save Planting";
 }
 
 async function deletePlot(plotId) {
@@ -380,6 +486,7 @@ async function loadLivestock() {
   try {
     const res = await fetch("/api/livestock");
     const animals = await res.json();
+    window.UzhavanApp.animals = animals || [];
 
     // Populate animal selector in breeding modal & milk modal
     const animalSelectBreeding = document.getElementById("breedingAnimalId");
@@ -392,6 +499,11 @@ async function loadLivestock() {
       const milch = animals.filter(a => a.species === "cow" || a.species === "buffalo");
       animalSelectMilk.innerHTML = `<option value="">-- Select Cow / Buffalo --</option>` +
         milch.map(a => `<option value="${a.id}">${a.tag_id} - ${a.name || ""}</option>`).join("");
+    }
+
+    // Also populate breeding history table if on livestock page
+    if (typeof loadBreedingRecords === "function") {
+      loadBreedingRecords();
     }
 
     if (animals.length === 0) {
@@ -413,9 +525,14 @@ async function loadLivestock() {
                 <h5 class="d-inline fw-bold text-dark">${a.tag_id}</h5>
                 <div class="small text-muted mt-1">${a.breed} | Age: ${a.age_years || "?"} yrs</div>
               </div>
-              <button class="btn btn-sm btn-link text-danger p-0" onclick="deleteLivestock('${a.id}')">
-                <i class="bi bi-trash"></i>
-              </button>
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-link text-primary p-0" title="Edit Animal" onclick="editLivestock('${a.id}')">
+                  <i class="bi bi-pencil-square"></i>
+                </button>
+                <button class="btn btn-sm btn-link text-danger p-0" title="Delete Animal" onclick="deleteLivestock('${a.id}')">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
             </div>
             
             <hr class="my-2">
@@ -438,6 +555,14 @@ async function loadLivestock() {
                   ${rep.pd_check_date ? `<div class="col-12"><i class="bi bi-activity text-warning"></i> <strong>PD Check:</strong> ${rep.pd_check_date}</div>` : ""}
                   ${rep.dry_off_date ? `<div class="col-12"><i class="bi bi-droplet-half text-danger"></i> <strong>Dry-off:</strong> ${rep.dry_off_date}</div>` : ""}
                 </div>
+                ${a.active_breeding_record ? `
+                  <div class="mt-2 pt-1 border-top d-flex justify-content-between align-items-center">
+                    <span class="small text-muted"><i class="bi bi-heart me-1 text-danger"></i>AI/Mated: ${a.active_breeding_record.date}</span>
+                    <button class="btn btn-sm btn-link text-primary p-0" title="Edit Active Breeding Event" onclick="editBreeding('${a.active_breeding_record.id}')">
+                      <i class="bi bi-pencil-square me-1"></i>Edit AI/Breed
+                    </button>
+                  </div>
+                ` : ""}
               </div>
             ` : `
               <div class="small text-muted py-2">
@@ -466,6 +591,273 @@ async function loadLivestock() {
   }
 }
 
+function editLivestock(animalId) {
+  const animal = (window.UzhavanApp.animals || []).find(a => String(a.id) === String(animalId));
+  if (!animal) return;
+
+  const form = document.getElementById("animalForm");
+  if (!form) return;
+
+  form.dataset.editId = animalId;
+  const spSel = document.getElementById("animalSpecies") || form.querySelector("select[name='species']");
+  const genSel = document.getElementById("animalGender") || form.querySelector("select[name='gender']");
+  const tagInp = document.getElementById("animalTagId") || form.querySelector("input[name='tag_id']");
+  const brdInp = document.getElementById("animalBreed") || form.querySelector("input[name='breed']");
+  const ageInp = document.getElementById("animalAge") || form.querySelector("input[name='age_years']");
+  const lacInp = document.getElementById("animalLactation") || form.querySelector("input[name='lactation_number']");
+  const stSel = document.getElementById("animalStatus") || form.querySelector("select[name='status']");
+  const ntsInp = document.getElementById("animalNotes") || form.querySelector("input[name='notes']");
+
+  if (spSel) spSel.value = animal.species || "cow";
+  if (genSel) genSel.value = animal.gender || "female";
+  if (tagInp) tagInp.value = animal.tag_id || "";
+  if (brdInp) brdInp.value = animal.breed || "";
+  if (ageInp) ageInp.value = animal.age_years || "";
+  if (lacInp) lacInp.value = animal.lactation_number || "";
+  if (stSel) stSel.value = animal.status || "healthy";
+  if (ntsInp) ntsInp.value = animal.notes || "";
+
+  const titleEl = document.getElementById("animalModalTitle");
+  if (titleEl) titleEl.innerText = "Edit Livestock (கால்நடையை திருத்து)";
+  const submitBtn = document.getElementById("animalSubmitBtn") || form.querySelector("button[type='submit']");
+  if (submitBtn) submitBtn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Update Animal';
+
+  const modalEl = document.getElementById("animalModal");
+  if (modalEl) {
+    const modal = bootstrap.Modal.getInstance(modalEl) || (bootstrap.Modal.getOrCreateInstance ? bootstrap.Modal.getOrCreateInstance(modalEl) : new bootstrap.Modal(modalEl));
+    modal.show();
+  }
+}
+
+function resetAnimalModal() {
+  const form = document.getElementById("animalForm");
+  if (!form) return;
+  form.reset();
+  delete form.dataset.editId;
+  const titleEl = document.getElementById("animalModalTitle");
+  if (titleEl) titleEl.innerText = "Register Animal";
+  const submitBtn = document.getElementById("animalSubmitBtn") || form.querySelector("button[type='submit']");
+  if (submitBtn) submitBtn.innerText = "Register Animal";
+}
+
+async function loadBreedingRecords() {
+  const tbody = document.getElementById("breedingTableBody");
+  if (!tbody) return;
+
+  try {
+    const res = await fetch("/api/breeding");
+    const recs = await res.json();
+    window.UzhavanApp.breedingRecords = recs || [];
+
+    if (!recs || recs.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" class="text-center py-3 text-muted">No breeding records logged yet.</td></tr>`;
+      return;
+    }
+
+    let rows = "";
+    recs.forEach(r => {
+      const typeLabel = r.event_type === "insemination" ? "AI (செயற்கை முறை)" : "Natural Mating (இயற்கை)";
+      const statusBadge = r.status === "active" ? `<span class="badge bg-warning text-dark">Active Gestation</span>` :
+        r.status === "calved" ? `<span class="badge bg-success">Calved / Eennadhu</span>` :
+        r.status === "failed" ? `<span class="badge bg-danger">Failed / Repeat</span>` :
+        `<span class="badge bg-secondary">${r.status || 'Past'}</span>`;
+
+      rows += `
+        <tr>
+          <td class="text-nowrap">${r.date}</td>
+          <td><strong>${r.animal_tag || r.animal_id}</strong></td>
+          <td>${typeLabel}</td>
+          <td>${r.semen_bull_info || "-"}</td>
+          <td>${r.technician || "-"}</td>
+          <td>${statusBadge}</td>
+          <td class="text-nowrap">
+            <button class="btn btn-sm btn-link text-primary p-0 me-2" title="Edit Breeding Event" onclick="editBreeding('${r.id}')">
+              <i class="bi bi-pencil-square"></i>
+            </button>
+            <button class="btn btn-sm btn-link text-danger p-0" title="Delete Record" onclick="deleteBreeding('${r.id}')">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+    tbody.innerHTML = rows;
+  } catch (err) {
+    console.error("Breeding records load error:", err);
+  }
+}
+
+async function editBreeding(recId) {
+  if (!recId) return;
+  let rec = (window.UzhavanApp.breedingRecords || []).find(r => String(r.id) === String(recId));
+  if (!rec) {
+    try {
+      const res = await fetch("/api/breeding");
+      const list = await res.json();
+      window.UzhavanApp.breedingRecords = list;
+      rec = list.find(r => String(r.id) === String(recId));
+    } catch (e) {}
+  }
+  if (!rec) return;
+
+  await populateQuickLogDropdowns();
+  const form = document.getElementById("breedingForm");
+  if (!form) return;
+
+  form.dataset.editId = recId;
+  const anSel = document.getElementById("breedingAnimalId");
+  const evSel = document.getElementById("breedingEventType") || form.querySelector("select[name='event_type']");
+  const dtInp = document.getElementById("breedingDate") || form.querySelector("input[name='date']");
+  const blInp = document.getElementById("breedingBullInfo") || form.querySelector("input[name='semen_bull_info']");
+  const tcInp = document.getElementById("breedingTechnician") || form.querySelector("input[name='technician']");
+  const stSel = document.getElementById("breedingStatus") || form.querySelector("select[name='status']");
+  const ntsInp = document.getElementById("breedingNotes") || form.querySelector("input[name='notes']");
+
+  if (anSel) anSel.value = rec.animal_id || "";
+  if (evSel) evSel.value = rec.event_type || "insemination";
+  if (dtInp) dtInp.value = rec.date || "";
+  if (blInp) blInp.value = rec.semen_bull_info || "";
+  if (tcInp) tcInp.value = rec.technician || "";
+  if (stSel) stSel.value = rec.status || "active";
+  if (ntsInp) ntsInp.value = rec.notes || "";
+
+  const titleEl = document.getElementById("breedingModalTitle");
+  if (titleEl) titleEl.innerText = "Edit Breeding Event (சினைப்பதிவை திருத்து)";
+  const submitBtn = document.getElementById("breedingSubmitBtn") || form.querySelector("button[type='submit']");
+  if (submitBtn) submitBtn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Update Record';
+
+  const modalEl = document.getElementById("breedingModal");
+  if (modalEl) {
+    const modal = bootstrap.Modal.getInstance(modalEl) || (bootstrap.Modal.getOrCreateInstance ? bootstrap.Modal.getOrCreateInstance(modalEl) : new bootstrap.Modal(modalEl));
+    modal.show();
+  }
+}
+
+function resetBreedingModal() {
+  const form = document.getElementById("breedingForm");
+  if (!form) return;
+  form.reset();
+  delete form.dataset.editId;
+  const titleEl = document.getElementById("breedingModalTitle");
+  if (titleEl) titleEl.innerText = "Record Insemination / Mating";
+  const submitBtn = document.getElementById("breedingSubmitBtn") || form.querySelector("button[type='submit']");
+  if (submitBtn) submitBtn.innerText = "Record Milestones";
+}
+
+async function deleteBreeding(recId) {
+  if (!confirm(t("confirm_delete"))) return;
+  await fetch(`/api/breeding/${recId}`, { method: "DELETE" });
+  showToast("Breeding record deleted");
+  if (typeof loadLivestock === "function") loadLivestock();
+  if (typeof loadBreedingRecords === "function") loadBreedingRecords();
+}
+
+async function loadMilkLogs() {
+  const tbody = document.getElementById("milkLogsTableBody");
+  if (!tbody) return;
+
+  try {
+    const res = await fetch("/api/milk");
+    const logs = await res.json();
+    window.UzhavanApp.milkLogs = logs || [];
+
+    if (!logs || logs.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center py-3 text-muted">No milk logs recorded yet.</td></tr>`;
+      return;
+    }
+
+    let rows = "";
+    logs.slice(0, 10).forEach(l => {
+      rows += `
+        <tr>
+          <td>${l.date}</td>
+          <td><strong>${l.animal_tag || l.animal_id}</strong></td>
+          <td>${l.total_liters} L <span class="text-muted small">(${l.morning_liters}M / ${l.evening_liters}E)</span></td>
+          <td>${l.fat_pct || "-"}% / ${l.snf_pct || "-"}%</td>
+          <td class="text-success fw-bold">₹${parseFloat(l.total_amount || 0).toLocaleString("en-IN")}</td>
+          <td class="text-nowrap">
+            <button class="btn btn-sm btn-link text-primary p-0 me-2" title="Edit Milk Log" onclick="editMilkLog('${l.id}')">
+              <i class="bi bi-pencil-square"></i>
+            </button>
+            <button class="btn btn-sm btn-link text-danger p-0" title="Delete Milk Log" onclick="deleteMilkLog('${l.id}')">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+    tbody.innerHTML = rows;
+  } catch (err) {
+    console.error("Milk logs load error:", err);
+  }
+}
+
+async function editMilkLog(logId) {
+  if (!logId) return;
+  let log = (window.UzhavanApp.milkLogs || []).find(l => String(l.id) === String(logId));
+  if (!log) {
+    try {
+      const res = await fetch("/api/milk");
+      const list = await res.json();
+      window.UzhavanApp.milkLogs = list;
+      log = list.find(l => String(l.id) === String(logId));
+    } catch (e) {}
+  }
+  if (!log) return;
+
+  await populateQuickLogDropdowns();
+  const form = document.getElementById("milkForm");
+  if (!form) return;
+
+  form.dataset.editId = logId;
+  const anSel = document.getElementById("milkAnimalId");
+  const dtInp = document.getElementById("milkDate") || form.querySelector("input[name='date']");
+  const mrnInp = document.getElementById("milkMorning") || form.querySelector("input[name='morning_liters']");
+  const evnInp = document.getElementById("milkEvening") || form.querySelector("input[name='evening_liters']");
+  const fatInp = document.getElementById("milkFat") || form.querySelector("input[name='fat_pct']");
+  const snfInp = document.getElementById("milkSnf") || form.querySelector("input[name='snf_pct']");
+  const rtInp = document.getElementById("milkRate") || form.querySelector("input[name='rate_per_liter']");
+  const byrInp = document.getElementById("milkBuyer") || form.querySelector("input[name='buyer']");
+
+  if (anSel) anSel.value = log.animal_id || "";
+  if (dtInp) dtInp.value = log.date || "";
+  if (mrnInp) mrnInp.value = log.morning_liters || "";
+  if (evnInp) evnInp.value = log.evening_liters || "";
+  if (fatInp) fatInp.value = log.fat_pct || "";
+  if (snfInp) snfInp.value = log.snf_pct || "";
+  if (rtInp) rtInp.value = log.rate_per_liter || "";
+  if (byrInp) byrInp.value = log.buyer || "";
+
+  const titleEl = document.getElementById("milkModalTitle");
+  if (titleEl) titleEl.innerText = "Edit Daily Milk Yield (பால் பதிவை திருத்து)";
+  const submitBtn = document.getElementById("milkSubmitBtn") || form.querySelector("button[type='submit']");
+  if (submitBtn) submitBtn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Update Milk Log';
+
+  const modalEl = document.getElementById("milkModal");
+  if (modalEl) {
+    const modal = bootstrap.Modal.getInstance(modalEl) || (bootstrap.Modal.getOrCreateInstance ? bootstrap.Modal.getOrCreateInstance(modalEl) : new bootstrap.Modal(modalEl));
+    modal.show();
+  }
+}
+
+function resetMilkModal() {
+  const form = document.getElementById("milkForm");
+  if (!form) return;
+  form.reset();
+  delete form.dataset.editId;
+  const titleEl = document.getElementById("milkModalTitle");
+  if (titleEl) titleEl.innerText = "Log Daily Milk Yield";
+  const submitBtn = document.getElementById("milkSubmitBtn") || form.querySelector("button[type='submit']");
+  if (submitBtn) submitBtn.innerText = "Save Milk Log";
+}
+
+async function deleteMilkLog(logId) {
+  if (!confirm(t("confirm_delete"))) return;
+  await fetch(`/api/milk/${logId}`, { method: "DELETE" });
+  showToast("Milk log removed");
+  if (typeof loadMilkLogs === "function") loadMilkLogs();
+}
+
 async function deleteLivestock(animalId) {
   if (!confirm(t("confirm_delete"))) return;
   await fetch(`/api/livestock/${animalId}`, { method: "DELETE" });
@@ -474,6 +866,7 @@ async function deleteLivestock(animalId) {
 }
 
 async function openBreedingModal(animalId) {
+  resetBreedingModal();
   await populateQuickLogDropdowns();
   const sel = document.getElementById("breedingAnimalId");
   if (sel && animalId) sel.value = animalId;
@@ -485,6 +878,7 @@ async function openBreedingModal(animalId) {
 }
 
 async function openMilkModal(animalId) {
+  resetMilkModal();
   await populateQuickLogDropdowns();
   const sel = document.getElementById("milkAnimalId");
   if (sel && animalId) sel.value = animalId;
@@ -643,6 +1037,7 @@ async function loadFinancials() {
     ]);
     const stats = await statsRes.json();
     const txns = await txnsRes.json();
+    window.UzhavanApp.txns = txns || [];
 
     document.getElementById("finIncome").innerText = `₹${stats.total_income.toLocaleString("en-IN")}`;
     document.getElementById("finExpense").innerText = `₹${stats.total_expense.toLocaleString("en-IN")}`;
@@ -699,7 +1094,10 @@ async function loadFinancials() {
           </td>
           <td>${produceDetails}</td>
           <td class="fw-bold tabular-nums text-nowrap ${amtClass}">${amtSign}₹${parseFloat(t.amount).toLocaleString("en-IN")}</td>
-          <td>
+          <td class="text-nowrap">
+            <button class="btn btn-sm btn-link text-primary p-0 me-2" title="Edit Transaction" onclick="editTxn('${t.id}')">
+              <i class="bi bi-pencil-square"></i>
+            </button>
             <button class="btn btn-sm btn-link text-danger p-0" title="Delete" onclick="deleteTxn('${t.id}')">
               <i class="bi bi-trash"></i>
             </button>
@@ -712,6 +1110,114 @@ async function loadFinancials() {
   } catch (err) {
     console.error("Financials load error:", err);
   }
+}
+
+async function editTxn(txnId) {
+  if (!txnId) return;
+  let txn = (window.UzhavanApp.txns || []).find(t => String(t.id) === String(txnId));
+  if (!txn) {
+    try {
+      const res = await fetch("/api/financials");
+      const list = await res.json();
+      window.UzhavanApp.txns = list;
+      txn = list.find(t => String(t.id) === String(txnId));
+    } catch (e) {}
+  }
+  if (!txn) return;
+
+  const form = document.getElementById("txnForm");
+  if (!form) return;
+
+  form.dataset.editId = txnId;
+
+  // Set type radio
+  const typeIncome = document.getElementById("txnTypeIncome");
+  const typeExpense = document.getElementById("txnTypeExpense");
+  if (txn.type === "expense") {
+    if (typeExpense) typeExpense.checked = true;
+    if (typeof onTxnTypeChange === "function") onTxnTypeChange("expense");
+  } else {
+    if (typeIncome) typeIncome.checked = true;
+    if (typeof onTxnTypeChange === "function") onTxnTypeChange("income");
+  }
+
+  // Populate category
+  const catSel = document.getElementById("txnCategorySelect");
+  if (catSel && txn.category) {
+    let found = false;
+    for (let i = 0; i < catSel.options.length; i++) {
+      if (catSel.options[i].value === txn.category) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      const opt = document.createElement("option");
+      opt.value = txn.category;
+      opt.text = txn.category;
+      catSel.appendChild(opt);
+    }
+    catSel.value = txn.category;
+    if (typeof onTxnCategorySelectChange === "function") onTxnCategorySelectChange();
+  }
+
+  const dtInp = document.getElementById("txnDate");
+  const comInp = document.getElementById("txnCommodity");
+  const qtyInp = document.getElementById("txnQuantity");
+  const untSel = document.getElementById("txnUnit");
+  const rtInp = document.getElementById("txnRate");
+  const byrInp = document.getElementById("txnBuyer") || form.querySelector("input[name='buyer']");
+  const slpInp = document.getElementById("txnSlipNo") || form.querySelector("input[name='slip_no']");
+  const amtInp = document.getElementById("txnAmount");
+  const dscInp = document.getElementById("txnDesc");
+
+  if (dtInp) dtInp.value = txn.date || "";
+  if (comInp) comInp.value = txn.commodity || "";
+  if (qtyInp) qtyInp.value = txn.quantity || "";
+  if (untSel) untSel.value = txn.unit || "Tons";
+  if (rtInp) rtInp.value = txn.rate_per_unit || "";
+  if (byrInp) byrInp.value = txn.buyer || "";
+  if (slpInp) slpInp.value = txn.slip_no || "";
+  if (amtInp) amtInp.value = txn.amount || "";
+  if (dscInp) dscInp.value = txn.desc || txn.notes || "";
+
+  if (typeof calculateTxnTotal === "function") calculateTxnTotal();
+
+  const titleEl = document.getElementById("txnModalTitle");
+  if (titleEl) titleEl.innerText = "Edit Financial Transaction (பரிவர்த்தனையை திருத்து)";
+  const submitBtn = document.getElementById("txnSubmitBtn") || form.querySelector("button[type='submit']");
+  if (submitBtn) submitBtn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Update Transaction';
+
+  const modalEl = document.getElementById("txnModal");
+  if (modalEl) {
+    const modal = bootstrap.Modal.getInstance(modalEl) || (bootstrap.Modal.getOrCreateInstance ? bootstrap.Modal.getOrCreateInstance(modalEl) : new bootstrap.Modal(modalEl));
+    modal.show();
+  }
+}
+
+function resetTxnModal() {
+  const form = document.getElementById("txnForm");
+  if (!form) return;
+  form.reset();
+  delete form.dataset.editId;
+  const incRadio = document.getElementById("txnTypeIncome");
+  if (incRadio) {
+    incRadio.checked = true;
+    if (typeof onTxnTypeChange === "function") onTxnTypeChange("income");
+  }
+  const calcPreview = document.getElementById("txnCalcPreview");
+  if (calcPreview) {
+    calcPreview.className = "badge bg-white text-dark border p-2 w-100 text-start font-monospace small";
+    calcPreview.innerHTML = '<i class="bi bi-calculator me-1 text-primary"></i> Enter Quantity & Rate to auto-calculate total';
+  }
+  const today = new Date().toISOString().split("T")[0];
+  const dtInp = document.getElementById("txnDate");
+  if (dtInp) dtInp.value = today;
+
+  const titleEl = document.getElementById("txnModalTitle");
+  if (titleEl) titleEl.innerText = "Record Financial Transaction";
+  const submitBtn = document.getElementById("txnSubmitBtn") || form.querySelector("button[type='submit']");
+  if (submitBtn) submitBtn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Save Transaction';
 }
 
 function renderExpenseChart(expensesByCategory) {
@@ -858,25 +1364,28 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         const fd = new FormData(plotForm);
         const data = Object.fromEntries(fd.entries());
-        const res = await fetch("/api/plots", {
-          method: "POST",
+        const editId = plotForm.dataset.editId;
+        const url = editId ? `/api/plots/${editId}` : "/api/plots";
+        const method = editId ? "PUT" : "POST";
+        const res = await fetch(url, {
+          method: method,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data)
         });
 
         if (res.ok) {
-          plotForm.reset();
+          resetPlotModal();
           safeCloseModal("plotModal");
-          showToast("Plot registered successfully!", "success");
+          showToast(editId ? "Plot updated successfully!" : "Plot registered successfully!", "success");
           if (typeof loadDashboardOverview === "function") loadDashboardOverview();
           if (typeof loadCropsAndPlots === "function") loadCropsAndPlots();
           populateQuickLogDropdowns();
         } else {
-          showToast("Failed to register plot", "danger");
+          showToast("Failed to save plot", "danger");
         }
       } catch (err) {
         console.error("Plot save error:", err);
-        showToast("Error registering plot", "danger");
+        showToast("Error saving plot", "danger");
       } finally {
         if (submitBtn) submitBtn.disabled = false;
       }
@@ -901,25 +1410,28 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
-        const res = await fetch("/api/crops", {
-          method: "POST",
+        const editId = cropForm.dataset.editId;
+        const url = editId ? `/api/crops/${editId}` : "/api/crops";
+        const method = editId ? "PUT" : "POST";
+        const res = await fetch(url, {
+          method: method,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data)
         });
 
         if (res.ok) {
-          cropForm.reset();
+          resetCropModal();
           safeCloseModal("cropModal");
-          showToast("New planting logged successfully!", "success");
+          showToast(editId ? "Planting updated successfully!" : "New planting logged successfully!", "success");
           if (typeof loadDashboardOverview === "function") loadDashboardOverview();
           if (typeof loadCropsAndPlots === "function") loadCropsAndPlots();
           populateQuickLogDropdowns();
         } else {
-          showToast("Failed to log planting", "danger");
+          showToast("Failed to save planting", "danger");
         }
       } catch (err) {
         console.error("Crop save error:", err);
-        showToast("Error logging planting", "danger");
+        showToast("Error saving planting", "danger");
       } finally {
         if (submitBtn) submitBtn.disabled = false;
       }
@@ -937,25 +1449,28 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         const fd = new FormData(animalForm);
         const data = Object.fromEntries(fd.entries());
-        const res = await fetch("/api/livestock", {
-          method: "POST",
+        const editId = animalForm.dataset.editId;
+        const url = editId ? `/api/livestock/${editId}` : "/api/livestock";
+        const method = editId ? "PUT" : "POST";
+        const res = await fetch(url, {
+          method: method,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data)
         });
 
         if (res.ok) {
-          animalForm.reset();
+          resetAnimalModal();
           safeCloseModal("animalModal");
-          showToast("Animal registered successfully!", "success");
+          showToast(editId ? "Animal updated successfully!" : "Animal registered successfully!", "success");
           if (typeof loadDashboardOverview === "function") loadDashboardOverview();
           if (typeof loadLivestock === "function") loadLivestock();
           populateQuickLogDropdowns();
         } else {
-          showToast("Failed to register animal", "danger");
+          showToast("Failed to save animal", "danger");
         }
       } catch (err) {
         console.error("Animal save error:", err);
-        showToast("Error registering animal", "danger");
+        showToast("Error saving animal", "danger");
       } finally {
         if (submitBtn) submitBtn.disabled = false;
       }
@@ -980,25 +1495,29 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
-        const res = await fetch("/api/breeding", {
-          method: "POST",
+        const editId = breedingForm.dataset.editId;
+        const url = editId ? `/api/breeding/${editId}` : "/api/breeding";
+        const method = editId ? "PUT" : "POST";
+        const res = await fetch(url, {
+          method: method,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data)
         });
 
         if (res.ok) {
-          breedingForm.reset();
+          resetBreedingModal();
           safeCloseModal("breedingModal");
-          showToast("Breeding event recorded! Gestation countdown started.", "success");
+          showToast(editId ? "Breeding record updated successfully!" : "Breeding event recorded! Gestation countdown started.", "success");
           if (typeof loadDashboardOverview === "function") loadDashboardOverview();
           if (typeof loadLivestock === "function") loadLivestock();
+          if (typeof loadBreedingRecords === "function") loadBreedingRecords();
           populateQuickLogDropdowns();
         } else {
-          showToast("Failed to record breeding event", "danger");
+          showToast("Failed to save breeding event", "danger");
         }
       } catch (err) {
         console.error("Breeding save error:", err);
-        showToast("Error recording breeding event", "danger");
+        showToast("Error saving breeding event", "danger");
       } finally {
         if (submitBtn) submitBtn.disabled = false;
       }
@@ -1023,16 +1542,19 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
-        const res = await fetch("/api/milk", {
-          method: "POST",
+        const editId = milkForm.dataset.editId;
+        const url = editId ? `/api/milk/${editId}` : "/api/milk";
+        const method = editId ? "PUT" : "POST";
+        const res = await fetch(url, {
+          method: method,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data)
         });
 
         if (res.ok) {
-          milkForm.reset();
+          resetMilkModal();
           safeCloseModal("milkModal");
-          showToast("Daily milk yield recorded successfully!", "success");
+          showToast(editId ? "Daily milk log updated successfully!" : "Daily milk yield recorded successfully!", "success");
           if (typeof loadDashboardOverview === "function") loadDashboardOverview();
           if (typeof loadLivestock === "function") loadLivestock();
           if (typeof loadMilkLogs === "function") loadMilkLogs();
@@ -1078,22 +1600,19 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         const fd = new FormData(finForm);
         const data = Object.fromEntries(fd.entries());
-        const res = await fetch("/api/financials", {
-          method: "POST",
+        const editId = finForm.dataset.editId;
+        const url = editId ? `/api/financials/${editId}` : "/api/financials";
+        const method = editId ? "PUT" : "POST";
+        const res = await fetch(url, {
+          method: method,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data)
         });
 
         if (res.ok) {
-          finForm.reset();
-          if (typeof onTxnTypeChange === "function") onTxnTypeChange("income");
-          const calcPreview = document.getElementById("txnCalcPreview");
-          if (calcPreview) {
-            calcPreview.className = "badge bg-white text-dark border p-2 w-100 text-start font-monospace small";
-            calcPreview.innerHTML = '<i class="bi bi-calculator me-1 text-primary"></i> Enter Quantity & Rate to auto-calculate total';
-          }
+          resetTxnModal();
           safeCloseModal("txnModal");
-          showToast("Financial transaction recorded successfully", "success");
+          showToast(editId ? "Transaction updated successfully" : "Financial transaction recorded successfully", "success");
           if (typeof loadDashboardOverview === "function") loadDashboardOverview();
           if (typeof loadFinancials === "function") loadFinancials();
         } else {
@@ -1107,6 +1626,30 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  // Reset modals cleanly on dismiss
+  const modalResets = {
+    "plotModal": typeof resetPlotModal === "function" ? resetPlotModal : null,
+    "cropModal": typeof resetCropModal === "function" ? resetCropModal : null,
+    "animalModal": typeof resetAnimalModal === "function" ? resetAnimalModal : null,
+    "breedingModal": typeof resetBreedingModal === "function" ? resetBreedingModal : null,
+    "milkModal": typeof resetMilkModal === "function" ? resetMilkModal : null,
+    "txnModal": typeof resetTxnModal === "function" ? resetTxnModal : null
+  };
+
+  Object.entries(modalResets).forEach(([modalId, resetFn]) => {
+    const el = document.getElementById(modalId);
+    if (el) {
+      el.addEventListener("hidden.bs.modal", () => {
+        if (modalId === "plotModal" && typeof resetPlotModal === "function") resetPlotModal();
+        else if (modalId === "cropModal" && typeof resetCropModal === "function") resetCropModal();
+        else if (modalId === "animalModal" && typeof resetAnimalModal === "function") resetAnimalModal();
+        else if (modalId === "breedingModal" && typeof resetBreedingModal === "function") resetBreedingModal();
+        else if (modalId === "milkModal" && typeof resetMilkModal === "function") resetMilkModal();
+        else if (modalId === "txnModal" && typeof resetTxnModal === "function") resetTxnModal();
+      });
+    }
+  });
 
   // Settings Form
   const settingsForm = document.getElementById("settingsForm");

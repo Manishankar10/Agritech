@@ -91,5 +91,51 @@
     "id": "edefd96f-e8fb-4071-90d0-3a301e872704",
     "updated_at": "2026-10-25T18:57:17.797195",
     "created_at": "2026-10-25T18:57:17.797200"
+  },
+  {
+    "area_cultivated_acres": 1.5,
+    "crop_name": "Groundnut (மணிலா / நிலக்கடலை)",
+    "expected_harvest": "2027-02-07",
+    "plot_id": "plot_delta_01",
+    "season": "Samba / Thaladi (சம்பா / தாளடி)",
+    "sowing_date": "2026-10-25",
+    "variety": "TMV-7",
+    "status": "active",
+    "stage": "Sowing / Nursery (விதைப்பு / நாற்றங்கால்)",
+    "user_id": "farmer",
+    "id": "53e9354d-23aa-4518-9aae-e39ac49b7531",
+    "updated_at": "2026-10-25T19:03:08.660679",
+    "created_at": "2026-10-25T19:03:08.660684"
+  },
+  {
+    "area_cultivated_acres": 2.2,
+    "crop_name": "Tapioca (மரவள்ளிக் கிழங்கு)",
+    "expected_harvest": "2027-08-01",
+    "plot_id": "4e71717f-7042-48c5-ba4e-df9458310e81",
+    "season": "Navarai",
+    "sowing_date": "2026-10-25",
+    "variety": "Kunguma Roja Superior",
+    "status": "active",
+    "stage": "Tuber Bulking (கிழங்கு பெருக்கும் பருவம்)",
+    "user_id": "farmer",
+    "id": "82e4875f-73c9-4c1b-bbbe-c108442afa37",
+    "updated_at": "2026-10-25T19:16:51.995258",
+    "created_at": "2026-10-25T19:16:51.995273",
+    "notes": "Excellent root development after potassium application"
+  },
+  {
+    "area_cultivated_acres": 1.5,
+    "crop_name": "Groundnut (மணிலா / நிலக்கடலை)",
+    "expected_harvest": "2027-02-07",
+    "plot_id": "plot_delta_01",
+    "season": "Samba / Thaladi (சம்பா / தாளடி)",
+    "sowing_date": "2026-10-25",
+    "variety": "TMV-7",
+    "status": "active",
+    "stage": "Sowing / Nursery (விதைப்பு / நாற்றங்கால்)",
+    "user_id": "farmer",
+    "id": "d22e900c-9c50-4b4e-8d9f-1ad14dce2956",
+    "updated_at": "2026-10-25T19:16:54.606402",
+    "created_at": "2026-10-25T19:16:54.606410"
   }
 ]

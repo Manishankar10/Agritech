@@ -168,7 +168,7 @@
               <i class="bi bi-cash-stack"></i>
             </div>
             <div>
-              <h6 class="modal-title fw-bold mb-0 text-dark" data-i18n="add_txn_btn">Record Financial Transaction</h6>
+              <h6 class="modal-title fw-bold mb-0 text-dark" id="txnModalTitle" data-i18n="add_txn_btn">Record Financial Transaction</h6>
               <div class="small text-muted">Crop Sales, Farm Expenses, Produce Quantities & Rates</div>
             </div>
           </div>
@@ -279,11 +279,11 @@
             <div class="row g-2 mt-2 pt-2 border-top">
               <div class="col-md-6">
                 <label class="form-label small text-muted mb-1">Buyer / Mill / Trader / Merchant (வாங்குபவர் / சேகோ ஆலை / வியாபாரி)</label>
-                <input type="text" class="form-control" name="buyer" placeholder="e.g. Salem Sago Factory / Trader Murugan">
+                <input type="text" class="form-control" name="buyer" id="txnBuyer" placeholder="e.g. Salem Sago Factory / Trader Murugan">
               </div>
               <div class="col-md-6">
                 <label class="form-label small text-muted mb-1">Weighbridge Slip / Bill / Lorry # (எடை ரசீது / லாரி எண்)</label>
-                <input type="text" class="form-control" name="slip_no" placeholder="e.g. Weighbridge Slip #4892 &bull; TN-28-AB-1234">
+                <input type="text" class="form-control" name="slip_no" id="txnSlipNo" placeholder="e.g. Weighbridge Slip #4892 &bull; TN-28-AB-1234">
               </div>
             </div>
           </div>
@@ -327,7 +327,7 @@
     <div class="modal-content">
       <form id="milkForm">
         <div class="modal-header">
-          <h6 class="modal-title fw-bold" data-i18n="milk_log_title">Log Daily Milk Yield</h6>
+          <h6 class="modal-title fw-bold" id="milkModalTitle" data-i18n="milk_log_title">Log Daily Milk Yield</h6>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
@@ -339,40 +339,40 @@
           </div>
           <div class="mb-3">
             <label class="form-label small fw-bold text-muted">Date</label>
-            <input type="date" class="form-control" name="date" required value="{{ date }}">
+            <input type="date" class="form-control" name="date" id="milkDate" required value="{{ date }}">
           </div>
           <div class="row g-2 mb-3">
             <div class="col-6">
               <label class="form-label small fw-bold text-muted" data-i18n="morning_liters">Morning (Liters)</label>
-              <input type="number" step="0.1" class="form-control" name="morning_liters" required placeholder="0.0">
+              <input type="number" step="0.1" class="form-control" name="morning_liters" id="milkMorning" required placeholder="0.0">
             </div>
             <div class="col-6">
               <label class="form-label small fw-bold text-muted" data-i18n="evening_liters">Evening (Liters)</label>
-              <input type="number" step="0.1" class="form-control" name="evening_liters" required placeholder="0.0">
+              <input type="number" step="0.1" class="form-control" name="evening_liters" id="milkEvening" required placeholder="0.0">
             </div>
           </div>
           <div class="row g-2 mb-3">
             <div class="col-4">
               <label class="form-label small fw-bold text-muted">Fat %</label>
-              <input type="number" step="0.1" class="form-control" name="fat_pct" placeholder="4.2">
+              <input type="number" step="0.1" class="form-control" name="fat_pct" id="milkFat" placeholder="4.2">
             </div>
             <div class="col-4">
               <label class="form-label small fw-bold text-muted">SNF %</label>
-              <input type="number" step="0.1" class="form-control" name="snf_pct" placeholder="8.5">
+              <input type="number" step="0.1" class="form-control" name="snf_pct" id="milkSnf" placeholder="8.5">
             </div>
             <div class="col-4">
               <label class="form-label small fw-bold text-muted" data-i18n="rate_per_liter">Rate / L</label>
-              <input type="number" step="0.5" class="form-control" name="rate_per_liter" value="38.0">
+              <input type="number" step="0.5" class="form-control" name="rate_per_liter" id="milkRate" value="38.0">
             </div>
           </div>
           <div class="mb-3">
             <label class="form-label small fw-bold text-muted">Buyer / Cooperative</label>
-            <input type="text" class="form-control" name="buyer" value="Aavin / Local Society">
+            <input type="text" class="form-control" name="buyer" id="milkBuyer" value="Aavin / Local Society">
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal" data-i18n="cancel_btn">Cancel</button>
-          <button type="submit" class="btn btn-sm btn-primary" data-i18n="save_btn">Save Milk Log</button>
+          <button type="submit" class="btn btn-sm btn-primary" id="milkSubmitBtn" data-i18n="save_btn">Save Milk Log</button>
         </div>
       </form>
     </div>
@@ -385,7 +385,7 @@
     <div class="modal-content">
       <form id="breedingForm">
         <div class="modal-header">
-          <h6 class="modal-title fw-bold" data-i18n="action_add_breeding">Record Insemination / Mating</h6>
+          <h6 class="modal-title fw-bold" id="breedingModalTitle" data-i18n="action_add_breeding">Record Insemination / Mating</h6>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
@@ -398,28 +398,28 @@
           <div class="row g-2 mb-3">
             <div class="col-6">
               <label class="form-label small fw-bold text-muted">Breeding Type</label>
-              <select class="form-select" name="event_type" required>
+              <select class="form-select" name="event_type" id="breedingEventType" required>
                 <option value="insemination">Artificial Insemination (AI)</option>
                 <option value="mating">Natural Mating Service</option>
               </select>
             </div>
             <div class="col-6">
               <label class="form-label small fw-bold text-muted">Service Date</label>
-              <input type="date" class="form-control" name="date" required value="{{ date }}">
+              <input type="date" class="form-control" name="date" id="breedingDate" required value="{{ date }}">
             </div>
           </div>
           <div class="mb-3">
             <label class="form-label small fw-bold text-muted">Bull / Straw Details</label>
-            <input type="text" class="form-control" name="semen_bull_info" placeholder="e.g. Kangayam Bull #402 / Erode Station">
+            <input type="text" class="form-control" name="semen_bull_info" id="breedingBullInfo" placeholder="e.g. Kangayam Bull #402 / Erode Station">
           </div>
           <div class="mb-3">
             <label class="form-label small fw-bold text-muted">Veterinarian / Technician</label>
-            <input type="text" class="form-control" name="technician" placeholder="e.g. Dr. Senthil / VAS Dispensary">
+            <input type="text" class="form-control" name="technician" id="breedingTechnician" placeholder="e.g. Dr. Senthil / VAS Dispensary">
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal" data-i18n="cancel_btn">Cancel</button>
-          <button type="submit" class="btn btn-sm btn-warning" data-i18n="save_btn">Record Milestones</button>
+          <button type="submit" class="btn btn-sm btn-warning" id="breedingSubmitBtn" data-i18n="save_btn">Record Milestones</button>
         </div>
       </form>
     </div>
@@ -432,7 +432,7 @@
     <div class="modal-content">
       <form id="cropForm">
         <div class="modal-header">
-          <h6 class="modal-title fw-bold" data-i18n="add_crop_btn">Plant New Crop</h6>
+          <h6 class="modal-title fw-bold" id="cropModalTitle" data-i18n="add_crop_btn">Plant New Crop</h6>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
@@ -445,17 +445,17 @@
           <div class="row g-2 mb-3">
             <div class="col-6">
               <label class="form-label small fw-bold text-muted">Crop Name</label>
-              <input type="text" class="form-control" name="crop_name" placeholder="e.g. Paddy (நெல்)" required>
+              <input type="text" class="form-control" name="crop_name" id="cropName" placeholder="e.g. Paddy (நெல்)" required>
             </div>
             <div class="col-6">
               <label class="form-label small fw-bold text-muted">Variety</label>
-              <input type="text" class="form-control" name="variety" placeholder="e.g. CR-1009 Sub-1 / Ponni" required>
+              <input type="text" class="form-control" name="variety" id="cropVariety" placeholder="e.g. CR-1009 Sub-1 / Ponni" required>
             </div>
           </div>
           <div class="row g-2 mb-3">
             <div class="col-6">
               <label class="form-label small fw-bold text-muted">Season</label>
-              <select class="form-select" name="season" required>
+              <select class="form-select" name="season" id="cropSeason" required>
                 <option value="Kuruvai (குறுவை)">Kuruvai (குறுவை)</option>
                 <option value="Samba / Thaladi (சம்பா / தாளடி)">Samba / Thaladi (சம்பா / தாளடி)</option>
                 <option value="Navarai / Summer (நவரை)">Navarai / Summer (நவரை)</option>
@@ -464,23 +464,23 @@
             </div>
             <div class="col-6">
               <label class="form-label small fw-bold text-muted" data-i18n="sowing_date">Sowing Date</label>
-              <input type="date" class="form-control" name="sowing_date" required>
+              <input type="date" class="form-control" name="sowing_date" id="cropSowingDate" required>
             </div>
           </div>
           <div class="row g-2 mb-3">
             <div class="col-6">
               <label class="form-label small fw-bold text-muted" data-i18n="expected_harvest">Expected Harvest Date</label>
-              <input type="date" class="form-control" name="expected_harvest">
+              <input type="date" class="form-control" name="expected_harvest" id="cropHarvestDate">
             </div>
             <div class="col-6">
               <label class="form-label small fw-bold text-muted">Area (Acres)</label>
-              <input type="number" step="0.1" class="form-control" name="area_cultivated_acres" placeholder="e.g. 2.0">
+              <input type="number" step="0.1" class="form-control" name="area_cultivated_acres" id="cropArea" placeholder="e.g. 2.0">
             </div>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal" data-i18n="cancel_btn">Cancel</button>
-          <button type="submit" class="btn btn-sm btn-success" data-i18n="save_btn">Save Planting</button>
+          <button type="submit" class="btn btn-sm btn-success" id="cropSubmitBtn" data-i18n="save_btn">Save Planting</button>
         </div>
       </form>
     </div>
@@ -491,8 +491,10 @@
 {% block scripts %}
 <script>
   function setTxnType(type) {
-    const sel = document.getElementById("txnTypeSelect");
-    if (sel) sel.value = type;
+    if (typeof resetTxnModal === "function") resetTxnModal();
+    const radio = document.getElementById(type === "expense" ? "txnTypeExpense" : "txnTypeIncome");
+    if (radio) radio.checked = true;
+    if (typeof onTxnTypeChange === "function") onTxnTypeChange(type);
   }
 
   document.addEventListener("DOMContentLoaded", () => {

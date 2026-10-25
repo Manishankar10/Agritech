@@ -319,12 +319,23 @@ def api_plots():
 
     return jsonify(db_store.get_user_items("plots", uname))
 
-@app.route("/api/plots/<plot_id>", methods=["DELETE"])
+@app.route("/api/plots/<plot_id>", methods=["DELETE", "PUT"])
 @login_required
-def api_delete_plot(plot_id):
+def api_modify_plot(plot_id):
     user = get_current_user()
-    success = db_store.delete_user_item("plots", plot_id, user["username"])
-    return jsonify({"success": success})
+    uname = user["username"]
+    if request.method == "DELETE":
+        success = db_store.delete_user_item("plots", plot_id, uname)
+        return jsonify({"success": success})
+    elif request.method == "PUT":
+        data = request.json or {}
+        existing = db_store.get_by_id("plots", plot_id)
+        if existing and existing.get("user_id", "farmer") == uname:
+            existing.update(data)
+            existing["id"] = plot_id
+            db_store.save_user_item("plots", existing, uname)
+            return jsonify(existing)
+        return jsonify({"error": "Plot not found or unauthorized"}), 404
 
 # --- User-Scoped Crops API ---
 @app.route("/api/crops", methods=["GET", "POST"])
@@ -363,6 +374,7 @@ def api_modify_crop(crop_id):
         existing = db_store.get_by_id("crops", crop_id)
         if existing and existing.get("user_id", "farmer") == uname:
             existing.update(data)
+            existing["id"] = crop_id
             db_store.save_user_item("crops", existing, uname)
             return jsonify(existing)
         return jsonify({"error": "Crop not found or unauthorized"}), 404
@@ -397,12 +409,23 @@ def api_livestock():
 
     return jsonify(animals)
 
-@app.route("/api/livestock/<animal_id>", methods=["DELETE"])
+@app.route("/api/livestock/<animal_id>", methods=["DELETE", "PUT"])
 @login_required
-def api_delete_livestock(animal_id):
+def api_modify_livestock(animal_id):
     user = get_current_user()
-    db_store.delete_user_item("livestock", animal_id, user["username"])
-    return jsonify({"success": True})
+    uname = user["username"]
+    if request.method == "DELETE":
+        db_store.delete_user_item("livestock", animal_id, uname)
+        return jsonify({"success": True})
+    elif request.method == "PUT":
+        data = request.json or {}
+        existing = db_store.get_by_id("livestock", animal_id)
+        if existing and existing.get("user_id", "farmer") == uname:
+            existing.update(data)
+            existing["id"] = animal_id
+            db_store.save_user_item("livestock", existing, uname)
+            return jsonify(existing)
+        return jsonify({"error": "Animal not found or unauthorized"}), 404
 
 # --- User-Scoped Breeding Records API ---
 @app.route("/api/breeding", methods=["GET", "POST"])
@@ -452,12 +475,29 @@ def api_breeding_calculate():
         res = breeding_engine.calculate_goat_reproduction(ev_date)
     return jsonify(res)
 
-@app.route("/api/breeding/<record_id>", methods=["DELETE"])
+@app.route("/api/breeding/<record_id>", methods=["DELETE", "PUT"])
 @login_required
-def api_delete_breeding(record_id):
+def api_modify_breeding(record_id):
     user = get_current_user()
-    db_store.delete_user_item("breeding_records", record_id, user["username"])
-    return jsonify({"success": True})
+    uname = user["username"]
+    if request.method == "DELETE":
+        db_store.delete_user_item("breeding_records", record_id, uname)
+        return jsonify({"success": True})
+    elif request.method == "PUT":
+        data = request.json or {}
+        existing = db_store.get_by_id("breeding_records", record_id)
+        if existing and existing.get("user_id", "farmer") == uname:
+            existing.update(data)
+            existing["id"] = record_id
+            aid = str(existing.get("animal_id", "")).strip()
+            if aid:
+                animals = db_store.get_user_items("livestock", uname)
+                target_animal = next((a for a in animals if str(a.get("id")) == aid), None)
+                if target_animal:
+                    existing["animal_tag"] = target_animal.get("tag_id") or target_animal.get("name") or aid
+            db_store.save_user_item("breeding_records", existing, uname)
+            return jsonify(existing)
+        return jsonify({"error": "Breeding record not found or unauthorized"}), 404
 
 # --- User-Scoped Milk Records API ---
 @app.route("/api/milk", methods=["GET", "POST"])
@@ -490,12 +530,37 @@ def api_milk():
     logs.sort(key=lambda x: x.get("date", ""), reverse=True)
     return jsonify(logs)
 
-@app.route("/api/milk/<log_id>", methods=["DELETE"])
+@app.route("/api/milk/<log_id>", methods=["DELETE", "PUT"])
 @login_required
-def api_delete_milk(log_id):
+def api_modify_milk(log_id):
     user = get_current_user()
-    db_store.delete_user_item("milk_records", log_id, user["username"])
-    return jsonify({"success": True})
+    uname = user["username"]
+    if request.method == "DELETE":
+        db_store.delete_user_item("milk_records", log_id, uname)
+        return jsonify({"success": True})
+    elif request.method == "PUT":
+        data = request.json or {}
+        existing = db_store.get_by_id("milk_records", log_id)
+        if existing and existing.get("user_id", "farmer") == uname:
+            existing.update(data)
+            existing["id"] = log_id
+            try:
+                m = float(existing.get("morning_liters", 0))
+                e = float(existing.get("evening_liters", 0))
+                existing["total_liters"] = round(m + e, 2)
+                rate = float(existing.get("rate_per_liter", 38.0))
+                existing["total_amount"] = round(existing["total_liters"] * rate, 2)
+                aid = str(existing.get("animal_id", "")).strip()
+                if aid:
+                    animals = db_store.get_user_items("livestock", uname)
+                    target_animal = next((a for a in animals if str(a.get("id")) == aid), None)
+                    if target_animal:
+                        existing["animal_tag"] = target_animal.get("tag_id") or target_animal.get("name") or aid
+            except Exception:
+                pass
+            db_store.save_user_item("milk_records", existing, uname)
+            return jsonify(existing)
+        return jsonify({"error": "Milk log not found or unauthorized"}), 404
 
 # --- User-Scoped Financials API ---
 @app.route("/api/financials", methods=["GET", "POST"])
@@ -528,12 +593,38 @@ def api_financials():
     txns.sort(key=lambda x: x.get("date", ""), reverse=True)
     return jsonify(txns)
 
-@app.route("/api/financials/<item_id>", methods=["DELETE"])
+@app.route("/api/financials/<item_id>", methods=["DELETE", "PUT"])
 @login_required
-def api_delete_financial(item_id):
+def api_modify_financial(item_id):
     user = get_current_user()
-    db_store.delete_user_item("financials", item_id, user["username"])
-    return jsonify({"success": True})
+    uname = user["username"]
+    if request.method == "DELETE":
+        db_store.delete_user_item("financials", item_id, uname)
+        return jsonify({"success": True})
+    elif request.method == "PUT":
+        data = request.json or {}
+        existing = db_store.get_by_id("financials", item_id)
+        if existing and existing.get("user_id", "farmer") == uname:
+            existing.update(data)
+            existing["id"] = item_id
+            if "amount" in existing and existing["amount"] not in ("", None):
+                try:
+                    existing["amount"] = float(existing["amount"])
+                except (ValueError, TypeError):
+                    existing["amount"] = 0.0
+            if "quantity" in existing and existing["quantity"] not in ("", None):
+                try:
+                    existing["quantity"] = float(existing["quantity"])
+                except (ValueError, TypeError):
+                    pass
+            if "rate_per_unit" in existing and existing["rate_per_unit"] not in ("", None):
+                try:
+                    existing["rate_per_unit"] = float(existing["rate_per_unit"])
+                except (ValueError, TypeError):
+                    pass
+            db_store.save_user_item("financials", existing, uname)
+            return jsonify(existing)
+        return jsonify({"error": "Transaction not found or unauthorized"}), 404
 
 @app.route("/api/financials/stats")
 @login_required

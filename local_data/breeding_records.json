@@ -72,11 +72,51 @@
     "event_type": "insemination",
     "semen_bull_info": "Kangayam Purebred Bull #402",
     "technician": "Dr. Senthil / VAS",
-    "status": "active",
+    "status": "superseded",
     "animal_tag": "TN-02-KAMALAM",
     "user_id": "farmer",
     "id": "ad4dad99-e8ba-4c64-ad26-f5d83b109f1c",
     "updated_at": "2026-10-25T18:57:17.752460",
     "created_at": "2026-10-25T18:57:17.752475"
+  },
+  {
+    "animal_id": "animal_tn02",
+    "date": "2026-10-25",
+    "event_type": "insemination",
+    "semen_bull_info": "Kangayam Purebred Bull #402",
+    "technician": "Dr. Senthil / VAS",
+    "status": "superseded",
+    "animal_tag": "TN-02-KAMALAM",
+    "user_id": "farmer",
+    "id": "8fdbd5ff-6c82-4187-831f-068552146418",
+    "updated_at": "2026-10-25T19:03:08.628756",
+    "created_at": "2026-10-25T19:03:08.628765"
+  },
+  {
+    "animal_id": "a70f0709-a5e9-427e-859f-a3aaa6580b3c",
+    "date": "2026-10-25",
+    "event_type": "insemination",
+    "semen_bull_info": "Kangayam Elite Bull #101-A",
+    "technician": "Chief VAS Senthil",
+    "status": "active",
+    "animal_tag": "TN-99-TEST",
+    "user_id": "farmer",
+    "id": "2b5076ac-99ab-461c-b4d1-323c3e31f161",
+    "updated_at": "2026-10-25T19:16:52.220630",
+    "created_at": "2026-10-25T19:16:52.220643",
+    "notes": "Verified pregnancy at 60 days via ultrasound"
+  },
+  {
+    "animal_id": "animal_tn02",
+    "date": "2026-10-25",
+    "event_type": "insemination",
+    "semen_bull_info": "Kangayam Purebred Bull #402",
+    "technician": "Dr. Senthil / VAS",
+    "status": "active",
+    "animal_tag": "TN-02-KAMALAM",
+    "user_id": "farmer",
+    "id": "24997668-5f64-4c4d-8350-990396bb184d",
+    "updated_at": "2026-10-25T19:16:54.540478",
+    "created_at": "2026-10-25T19:16:54.540487"
   }
 ]

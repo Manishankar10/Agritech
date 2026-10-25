@@ -10,7 +10,7 @@
     "village": "Alagarkoil",
     "language": "ta",
     "created_at": "2026-10-25T18:01:05.928747",
-    "updated_at": "2026-10-25T18:57:16.712167",
+    "updated_at": "2026-10-25T19:16:53.459830",
     "data_gov_key": ""
   },
   {
@@ -63,7 +63,7 @@
     "village": "Mettankattuvalasu",
     "language": "en",
     "created_at": "2026-10-25T18:15:29.839548",
-    "updated_at": "2026-10-25T18:54:47.853800"
+    "updated_at": "2026-10-25T18:58:58.720778"
   },
   {
     "id": "farmer_d41f76",
@@ -155,5 +155,31 @@
     "language": "en",
     "created_at": "2026-10-25T18:57:19.257063",
     "updated_at": "2026-10-25T18:57:19.257102"
+  },
+  {
+    "id": "farmer_691efc",
+    "username": "farmer_691efc",
+    "password_hash": "scrypt:32768:8:1$HM1xgYTkFMMku0Ja$cf18f671c8b7bce0491be3757634d146410e78d7837e24537546734c42341d6da1fa84e66ef91275bc735062a301bd4d635272c1038620fab2084ccaaf450865",
+    "farmer_name": "Rangarajan S (ரங்கராஜன்)",
+    "farm_name": "Kongu Naturals",
+    "district": "Coimbatore",
+    "taluk": "Pollachi",
+    "village": "Anamalai",
+    "language": "en",
+    "created_at": "2026-10-25T19:03:09.920108",
+    "updated_at": "2026-10-25T19:03:09.920149"
+  },
+  {
+    "id": "farmer_1eeff5",
+    "username": "farmer_1eeff5",
+    "password_hash": "scrypt:32768:8:1$OOmP4uzqDtGYk694$6d068ac54c2314cd77b0205b6830b957c0af4a84918a94dc236f9f63f87620f893123f074f674fdfdd5df1538632c192f0988383256af9303a6f1472b04291c2",
+    "farmer_name": "Rangarajan S (ரங்கராஜன்)",
+    "farm_name": "Kongu Naturals",
+    "district": "Coimbatore",
+    "taluk": "Pollachi",
+    "village": "Anamalai",
+    "language": "en",
+    "created_at": "2026-10-25T19:16:55.957777",
+    "updated_at": "2026-10-25T19:16:55.957822"
   }
 ]

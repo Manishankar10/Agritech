@@ -110,27 +110,27 @@
     <div class="modal-content">
       <form id="plotForm">
         <div class="modal-header">
-          <h6 class="modal-title fw-bold" data-i18n="add_plot_btn">Register Farmland Plot</h6>
+          <h6 class="modal-title fw-bold" id="plotModalTitle" data-i18n="add_plot_btn">Register Farmland Plot</h6>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <div class="mb-3">
             <label class="form-label small fw-bold text-muted">Plot / Field Name</label>
-            <input type="text" class="form-control" name="name" placeholder="e.g. North Parcel (வடக்கு காடு)" required>
+            <input type="text" class="form-control" name="name" id="plotName" placeholder="e.g. North Parcel (வடக்கு காடு)" required>
           </div>
           <div class="row g-2 mb-3">
             <div class="col-6">
               <label class="form-label small fw-bold text-muted">Area (Acres)</label>
-              <input type="number" step="0.1" class="form-control" name="area_acres" placeholder="e.g. 3.5" required>
+              <input type="number" step="0.1" class="form-control" name="area_acres" id="plotArea" placeholder="e.g. 3.5" required>
             </div>
             <div class="col-6">
               <label class="form-label small fw-bold text-muted">Survey Number</label>
-              <input type="text" class="form-control" name="survey_no" placeholder="e.g. 142/2B">
+              <input type="text" class="form-control" name="survey_no" id="plotSurvey" placeholder="e.g. 142/2B">
             </div>
           </div>
           <div class="mb-3">
             <label class="form-label small fw-bold text-muted">Soil Type</label>
-            <select class="form-select" name="soil_type" required>
+            <select class="form-select" name="soil_type" id="plotSoil" required>
               <option value="Clay Loam / Alluvial (வண்டல் மண்)">Clay Loam / Alluvial (வண்டல் மண்)</option>
               <option value="Red Loam (செம்மண்)">Red Loam (செம்மண்)</option>
               <option value="Black Cotton Soil (கரிசல் மண்)">Black Cotton Soil (கரிசல் மண்)</option>
@@ -139,12 +139,12 @@
           </div>
           <div class="mb-3">
             <label class="form-label small fw-bold text-muted">Water / Irrigation Source</label>
-            <input type="text" class="form-control" name="water_source" placeholder="e.g. Drip System & Borewell / Canal">
+            <input type="text" class="form-control" name="water_source" id="plotWater" placeholder="e.g. Drip System & Borewell / Canal">
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal" data-i18n="cancel_btn">Cancel</button>
-          <button type="submit" class="btn btn-sm btn-success" data-i18n="save_btn">Save Plot</button>
+          <button type="submit" class="btn btn-sm btn-success" id="plotSubmitBtn" data-i18n="save_btn">Save Plot</button>
         </div>
       </form>
     </div>
@@ -157,7 +157,7 @@
     <div class="modal-content">
       <form id="cropForm">
         <div class="modal-header">
-          <h6 class="modal-title fw-bold" data-i18n="add_crop_btn">Plant New Crop</h6>
+          <h6 class="modal-title fw-bold" id="cropModalTitle" data-i18n="add_crop_btn">Plant New Crop</h6>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
@@ -170,17 +170,17 @@
           <div class="row g-2 mb-3">
             <div class="col-6">
               <label class="form-label small fw-bold text-muted">Crop Name</label>
-              <input type="text" class="form-control" name="crop_name" placeholder="e.g. Paddy (நெல்)" required>
+              <input type="text" class="form-control" name="crop_name" id="cropName" placeholder="e.g. Paddy (நெல்)" required>
             </div>
             <div class="col-6">
               <label class="form-label small fw-bold text-muted">Variety</label>
-              <input type="text" class="form-control" name="variety" placeholder="e.g. CR-1009 Sub-1 / Ponni" required>
+              <input type="text" class="form-control" name="variety" id="cropVariety" placeholder="e.g. CR-1009 Sub-1 / Ponni" required>
             </div>
           </div>
           <div class="row g-2 mb-3">
             <div class="col-6">
               <label class="form-label small fw-bold text-muted">Season</label>
-              <select class="form-select" name="season" required>
+              <select class="form-select" name="season" id="cropSeason" required>
                 <option value="Kuruvai (குறுவை)">Kuruvai (குறுவை)</option>
                 <option value="Samba / Thaladi (சம்பா / தாளடி)">Samba / Thaladi (சம்பா / தாளடி)</option>
                 <option value="Navarai / Summer (நவரை)">Navarai / Summer (நவரை)</option>
@@ -189,27 +189,48 @@
             </div>
             <div class="col-6">
               <label class="form-label small fw-bold text-muted" data-i18n="sowing_date">Sowing Date</label>
-              <input type="date" class="form-control" name="sowing_date" required>
+              <input type="date" class="form-control" name="sowing_date" id="cropSowingDate" required>
             </div>
           </div>
           <div class="row g-2 mb-3">
             <div class="col-6">
               <label class="form-label small fw-bold text-muted" data-i18n="expected_harvest">Expected Harvest Date</label>
-              <input type="date" class="form-control" name="expected_harvest">
+              <input type="date" class="form-control" name="expected_harvest" id="cropHarvestDate">
             </div>
             <div class="col-6">
               <label class="form-label small fw-bold text-muted">Area (Acres)</label>
-              <input type="number" step="0.1" class="form-control" name="area_cultivated_acres" placeholder="e.g. 2.0">
+              <input type="number" step="0.1" class="form-control" name="area_cultivated_acres" id="cropArea" placeholder="e.g. 2.0">
+            </div>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-bold text-muted">Growth Stage</label>
+              <select class="form-select" name="stage" id="cropStageSelect">
+                <option value="Sowing / Nursery (விதைப்பு / நாற்றங்கால்)">Sowing / Nursery (விதைப்பு / நாற்றங்கால்)</option>
+                <option value="Transplanting (நடவு)">Transplanting (நடவு)</option>
+                <option value="Tillering & Vegetative (தூர்கட்டும் பருவம்)">Tillering & Vegetative (தூர்கட்டும் பருவம்)</option>
+                <option value="Flowering & Panicle (பூக்கும் / கதிர் பருவம்)">Flowering & Panicle (பூக்கும் / கதிர் பருவம்)</option>
+                <option value="Maturity & Harvest (முதிர்ச்சி & அறுவடை)">Maturity & Harvest (முதிர்ச்சி & அறுவடை)</option>
+                <option value="Harvested (அறுவடை முடிந்தது)">Harvested (அறுவடை முடிந்தது)</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold text-muted">Crop Status</label>
+              <select class="form-select" name="status" id="cropStatusSelect">
+                <option value="active">Active (வளர்ச்சியில் உள்ளது)</option>
+                <option value="harvested">Harvested (அறுவடை செய்யப்பட்டது)</option>
+                <option value="damaged">Damaged / Pest Affected (பாதிக்கப்பட்டது)</option>
+              </select>
             </div>
           </div>
           <div class="mb-3">
             <label class="form-label small fw-bold text-muted">Notes & Agronomy Schedule</label>
-            <textarea class="form-control" name="notes" rows="2" placeholder="e.g. Basal DAP applied. 1st top dress planned on Day 21."></textarea>
+            <textarea class="form-control" name="notes" id="cropNotes" rows="2" placeholder="e.g. Basal DAP applied. 1st top dress planned on Day 21."></textarea>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal" data-i18n="cancel_btn">Cancel</button>
-          <button type="submit" class="btn btn-sm btn-success" data-i18n="save_btn">Save Planting</button>
+          <button type="submit" class="btn btn-sm btn-success" id="cropSubmitBtn" data-i18n="save_btn">Save Planting</button>
         </div>
       </form>
     </div>

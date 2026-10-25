@@ -71,7 +71,7 @@
     <div class="card card-custom p-3 h-100 bg-white">
       <div class="card-header-clean px-0 pt-0">
         <span data-i18n="recent_txns">Recent Farm Ledger Transactions</span>
-        <button class="header-btn" data-bs-toggle="modal" data-bs-target="#txnModal">
+        <button class="header-btn" data-bs-toggle="modal" data-bs-target="#txnModal" onclick="resetTxnModal()">
           + Add Entry
         </button>
       </div>
@@ -110,7 +110,7 @@
               <i class="bi bi-cash-stack"></i>
             </div>
             <div>
-              <h6 class="modal-title fw-bold mb-0 text-dark" data-i18n="add_txn_btn">Record Financial Transaction</h6>
+              <h6 class="modal-title fw-bold mb-0 text-dark" id="txnModalTitle" data-i18n="add_txn_btn">Record Financial Transaction</h6>
               <div class="small text-muted">Crop Sales, Farm Expenses, Produce Quantities & Rates</div>
             </div>
           </div>
@@ -221,11 +221,11 @@
             <div class="row g-2 mt-2 pt-2 border-top">
               <div class="col-md-6">
                 <label class="form-label small text-muted mb-1">Buyer / Mill / Trader / Merchant (வாங்குபவர் / சேகோ ஆலை / வியாபாரி)</label>
-                <input type="text" class="form-control" name="buyer" placeholder="e.g. Salem Sago Factory / Trader Murugan">
+                <input type="text" class="form-control" name="buyer" id="txnBuyer" placeholder="e.g. Salem Sago Factory / Trader Murugan">
               </div>
               <div class="col-md-6">
                 <label class="form-label small text-muted mb-1">Weighbridge Slip / Bill / Lorry # (எடை ரசீது / லாரி எண்)</label>
-                <input type="text" class="form-control" name="slip_no" placeholder="e.g. Weighbridge Slip #4892 &bull; TN-28-AB-1234">
+                <input type="text" class="form-control" name="slip_no" id="txnSlipNo" placeholder="e.g. Weighbridge Slip #4892 &bull; TN-28-AB-1234">
               </div>
             </div>
           </div>

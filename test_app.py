@@ -304,6 +304,182 @@ class TestUzhavanDesk(unittest.TestCase):
         stats = json.loads(stats_resp.data)
         self.assertTrue(stats["total_income"] >= 133400.0)
 
+    def test_edit_endpoints_everywhere(self):
+        """Verifies edit (PUT) functionality for plots, crops, livestock, breeding, milk, and financial transactions."""
+        self.client.post("/login", data={"action": "demo"}, follow_redirects=True)
+
+        # 1. Plot Edit
+        plot_post = self.client.post("/api/plots", json={
+            "name": "Kallikudi North",
+            "area_acres": 2.5,
+            "survey_number": "142/3B",
+            "soil_type": "Clay Loam",
+            "water_source": "Borewell"
+        })
+        self.assertEqual(plot_post.status_code, 201)
+        plot_id = json.loads(plot_post.data)["id"]
+
+        plot_put = self.client.put(f"/api/plots/{plot_id}", json={
+            "name": "Kallikudi North - Renovated",
+            "area_acres": 3.0,
+            "survey_number": "142/3B",
+            "soil_type": "Clay Loam",
+            "water_source": "Canal + Borewell"
+        })
+        self.assertEqual(plot_put.status_code, 200)
+        updated_plot = json.loads(plot_put.data)
+        self.assertEqual(updated_plot["name"], "Kallikudi North - Renovated")
+        self.assertEqual(updated_plot["area_acres"], 3.0)
+        self.assertEqual(updated_plot["water_source"], "Canal + Borewell")
+
+        # 2. Crop Edit
+        crop_post = self.client.post("/api/crops", json={
+            "plot_id": plot_id,
+            "crop_name": "Tapioca (மரவள்ளிக் கிழங்கு)",
+            "variety": "Kunguma Roja",
+            "season": "Navarai",
+            "sowing_date": date.today().isoformat(),
+            "expected_harvest": (date.today() + timedelta(days=280)).isoformat(),
+            "area_cultivated_acres": 2.0
+        })
+        self.assertEqual(crop_post.status_code, 201)
+        crop_id = json.loads(crop_post.data)["id"]
+
+        crop_put = self.client.put(f"/api/crops/{crop_id}", json={
+            "plot_id": plot_id,
+            "crop_name": "Tapioca (மரவள்ளிக் கிழங்கு)",
+            "variety": "Kunguma Roja Superior",
+            "stage": "Tuber Bulking (கிழங்கு பெருக்கும் பருவம்)",
+            "status": "active",
+            "area_cultivated_acres": 2.2,
+            "notes": "Excellent root development after potassium application"
+        })
+        self.assertEqual(crop_put.status_code, 200)
+        updated_crop = json.loads(crop_put.data)
+        self.assertEqual(updated_crop["variety"], "Kunguma Roja Superior")
+        self.assertEqual(updated_crop["stage"], "Tuber Bulking (கிழங்கு பெருக்கும் பருவம்)")
+        self.assertEqual(updated_crop["area_cultivated_acres"], 2.2)
+
+        # 3. Livestock Edit
+        animal_post = self.client.post("/api/livestock", json={
+            "species": "cow",
+            "gender": "female",
+            "tag_id": "TN-99-TEST",
+            "breed": "Kangayam",
+            "age_years": 4,
+            "lactation_number": 2,
+            "status": "healthy"
+        })
+        self.assertEqual(animal_post.status_code, 201)
+        animal_id = json.loads(animal_post.data)["id"]
+
+        animal_put = self.client.put(f"/api/livestock/{animal_id}", json={
+            "species": "cow",
+            "gender": "female",
+            "tag_id": "TN-99-TEST",
+            "breed": "Pure Kangayam Champion",
+            "age_years": 5,
+            "lactation_number": 3,
+            "status": "healthy",
+            "notes": "Winner of district native breed expo"
+        })
+        self.assertEqual(animal_put.status_code, 200)
+        updated_animal = json.loads(animal_put.data)
+        self.assertEqual(updated_animal["breed"], "Pure Kangayam Champion")
+        self.assertEqual(updated_animal["age_years"], 5)
+        self.assertEqual(updated_animal["notes"], "Winner of district native breed expo")
+
+        # 4. Breeding Record Edit
+        breed_post = self.client.post("/api/breeding", json={
+            "animal_id": animal_id,
+            "event_type": "insemination",
+            "date": date.today().isoformat(),
+            "semen_bull_info": "Bull #101",
+            "technician": "VAS Senthil"
+        })
+        self.assertEqual(breed_post.status_code, 201)
+        breed_id = json.loads(breed_post.data)["id"]
+
+        breed_put = self.client.put(f"/api/breeding/{breed_id}", json={
+            "animal_id": animal_id,
+            "event_type": "insemination",
+            "date": date.today().isoformat(),
+            "semen_bull_info": "Kangayam Elite Bull #101-A",
+            "technician": "Chief VAS Senthil",
+            "status": "active",
+            "notes": "Verified pregnancy at 60 days via ultrasound"
+        })
+        self.assertEqual(breed_put.status_code, 200)
+        updated_breed = json.loads(breed_put.data)
+        self.assertEqual(updated_breed["semen_bull_info"], "Kangayam Elite Bull #101-A")
+        self.assertEqual(updated_breed["technician"], "Chief VAS Senthil")
+        self.assertEqual(updated_breed["notes"], "Verified pregnancy at 60 days via ultrasound")
+
+        # 5. Milk Log Edit
+        milk_post = self.client.post("/api/milk", json={
+            "animal_id": animal_id,
+            "date": date.today().isoformat(),
+            "morning_liters": 6.0,
+            "evening_liters": 4.0,
+            "rate_per_liter": 42.0,
+            "fat_pct": 4.2,
+            "snf_pct": 8.6,
+            "buyer": "Local Dairy Co-op"
+        })
+        self.assertEqual(milk_post.status_code, 201)
+        milk_id = json.loads(milk_post.data)["id"]
+
+        milk_put = self.client.put(f"/api/milk/{milk_id}", json={
+            "animal_id": animal_id,
+            "date": date.today().isoformat(),
+            "morning_liters": 7.0,
+            "evening_liters": 5.0,
+            "rate_per_liter": 44.0,
+            "fat_pct": 4.5,
+            "snf_pct": 8.9,
+            "buyer": "Aavin Premium"
+        })
+        self.assertEqual(milk_put.status_code, 200)
+        updated_milk = json.loads(milk_put.data)
+        self.assertEqual(updated_milk["morning_liters"], 7.0)
+        self.assertEqual(updated_milk["evening_liters"], 5.0)
+        self.assertEqual(updated_milk["total_liters"], 12.0)
+        self.assertEqual(updated_milk["rate_per_liter"], 44.0)
+        self.assertEqual(updated_milk["total_amount"], 528.0)
+        self.assertEqual(updated_milk["buyer"], "Aavin Premium")
+
+        # 6. Financial Transaction Edit
+        fin_post = self.client.post("/api/financials", json={
+            "type": "income",
+            "category": "Crop Sale (பயிர் விற்பனை)",
+            "amount": 50000.0,
+            "date": date.today().isoformat(),
+            "notes": "Advance for Paddy"
+        })
+        self.assertEqual(fin_post.status_code, 201)
+        fin_id = json.loads(fin_post.data)["id"]
+
+        fin_put = self.client.put(f"/api/financials/{fin_id}", json={
+            "type": "income",
+            "category": "Tapioca / Kuchchi Kilangu (மரவள்ளிக் கிழங்கு / குச்சிக் கிழங்கு)",
+            "commodity": "Kuchchi Kilangu / Tapioca (மரவள்ளிக் கிழங்கு / குச்சிக் கிழங்கு)",
+            "quantity": 10.0,
+            "unit": "Tons",
+            "rate_per_unit": 9500.0,
+            "amount": 95000.0,
+            "buyer": "Salem Modern Sago Mill",
+            "slip_no": "WB-9988",
+            "date": date.today().isoformat(),
+            "desc": "Full settlement after weighment"
+        })
+        self.assertEqual(fin_put.status_code, 200)
+        updated_fin = json.loads(fin_put.data)
+        self.assertEqual(updated_fin["quantity"], 10.0)
+        self.assertEqual(updated_fin["rate_per_unit"], 9500.0)
+        self.assertEqual(updated_fin["amount"], 95000.0)
+        self.assertEqual(updated_fin["buyer"], "Salem Modern Sago Mill")
+        self.assertEqual(updated_fin["slip_no"], "WB-9988")
+
 if __name__ == "__main__":
     unittest.main()
 
