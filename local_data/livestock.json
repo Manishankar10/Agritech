@@ -24,10 +24,11 @@
     "age_years": 3.5,
     "lactation_number": 1,
     "daily_milk_avg": 13.0,
-    "status": "milking",
+    "status": "pregnant",
     "notes": "High yield milch cow. Yields 13-14 liters daily.",
     "updated_at": "2026-10-25T17:49:48.699941",
-    "created_at": "2026-10-25T17:49:48.699959"
+    "created_at": "2026-10-25T17:49:48.699959",
+    "user_id": "farmer"
   },
   {
     "id": "animal_gt01",
@@ -55,5 +56,19 @@
     "notes": "Breeding buck. Vigorous and healthy.",
     "updated_at": "2026-10-25T17:49:48.764779",
     "created_at": "2026-10-25T17:49:48.764796"
+  },
+  {
+    "species": "goat",
+    "gender": "female",
+    "tag_id": "GO-02",
+    "breed": "White Mottai",
+    "age_years": "3",
+    "lactation_number": "2",
+    "status": "pregnant",
+    "notes": "Mottai chinna aadu",
+    "user_id": "manishankar",
+    "id": "c5ac2a9d-947d-4286-9010-f3d9376bfd92",
+    "updated_at": "2026-10-25T18:37:15.786157",
+    "created_at": "2026-10-25T18:37:15.786204"
   }
 ]

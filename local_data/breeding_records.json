@@ -26,5 +26,31 @@
     "notes": "Gestation progressing well. Due in approx 62 days.",
     "updated_at": "2026-10-25T17:49:48.807086",
     "created_at": "2026-10-25T17:49:48.807100"
+  },
+  {
+    "animal_id": "animal_tn02",
+    "date": "2026-10-25",
+    "event_type": "insemination",
+    "semen_bull_info": "Kangayam Purebred Bull #402",
+    "technician": "Dr. Senthil / VAS",
+    "status": "active",
+    "animal_tag": "TN-02-KAMALAM",
+    "user_id": "farmer",
+    "id": "2c447e0b-31be-4054-8156-08e16cdb75d7",
+    "updated_at": "2026-10-25T18:45:41.094528",
+    "created_at": "2026-10-25T18:45:41.094538"
+  },
+  {
+    "animal_id": "c5ac2a9d-947d-4286-9010-f3d9376bfd92",
+    "event_type": "mating",
+    "date": "2026-10-21",
+    "semen_bull_info": "White Goat - Mottai",
+    "technician": "None",
+    "status": "active",
+    "animal_tag": "GO-02",
+    "user_id": "manishankar",
+    "id": "579333a1-395f-4a47-9b74-2e376154cfe0",
+    "updated_at": "2026-10-25T18:45:55.004941",
+    "created_at": "2026-10-25T18:45:55.005086"
   }
 ]

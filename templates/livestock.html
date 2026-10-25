@@ -215,6 +215,111 @@
     </div>
   </div>
 </div>
+
+<!-- Milk Log Modal -->
+<div class="modal fade" id="milkModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="milkForm">
+        <div class="modal-header">
+          <h6 class="modal-title fw-bold" data-i18n="milk_log_title">Log Daily Milk Yield</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-muted">Milking Cow / Buffalo</label>
+            <select class="form-select" name="animal_id" id="milkAnimalId" required>
+              <option value="">Loading animals...</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-muted">Date</label>
+            <input type="date" class="form-control" name="date" required value="{{ date }}">
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-bold text-muted" data-i18n="morning_liters">Morning (Liters)</label>
+              <input type="number" step="0.1" class="form-control" name="morning_liters" required placeholder="0.0">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold text-muted" data-i18n="evening_liters">Evening (Liters)</label>
+              <input type="number" step="0.1" class="form-control" name="evening_liters" required placeholder="0.0">
+            </div>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-4">
+              <label class="form-label small fw-bold text-muted">Fat %</label>
+              <input type="number" step="0.1" class="form-control" name="fat_pct" placeholder="4.2">
+            </div>
+            <div class="col-4">
+              <label class="form-label small fw-bold text-muted">SNF %</label>
+              <input type="number" step="0.1" class="form-control" name="snf_pct" placeholder="8.5">
+            </div>
+            <div class="col-4">
+              <label class="form-label small fw-bold text-muted" data-i18n="rate_per_liter">Rate / L</label>
+              <input type="number" step="0.5" class="form-control" name="rate_per_liter" value="38.0">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-muted">Buyer / Cooperative</label>
+            <input type="text" class="form-control" name="buyer" value="Aavin / Local Society">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal" data-i18n="cancel_btn">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-primary" data-i18n="save_btn">Save Milk Log</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Breeding Modal -->
+<div class="modal fade" id="breedingModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="breedingForm">
+        <div class="modal-header">
+          <h6 class="modal-title fw-bold" data-i18n="action_add_breeding">Record Insemination / Mating</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-muted">Select Animal</label>
+            <select class="form-select" name="animal_id" id="breedingAnimalId" required>
+              <option value="">Loading animals...</option>
+            </select>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-bold text-muted">Breeding Type</label>
+              <select class="form-select" name="event_type" required>
+                <option value="insemination">Artificial Insemination (AI)</option>
+                <option value="mating">Natural Mating Service</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold text-muted">Service Date</label>
+              <input type="date" class="form-control" name="date" required value="{{ date }}">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-muted">Bull / Straw Details</label>
+            <input type="text" class="form-control" name="semen_bull_info" placeholder="e.g. Kangayam Bull #402 / Erode Station">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-muted">Veterinarian / Technician</label>
+            <input type="text" class="form-control" name="technician" placeholder="e.g. Dr. Senthil / VAS Dispensary">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal" data-i18n="cancel_btn">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-warning" data-i18n="save_btn">Record Milestones</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}

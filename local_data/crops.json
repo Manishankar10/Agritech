@@ -30,5 +30,20 @@
     "notes": "Drip fertigation applied weekly. Desuckering completed.",
     "updated_at": "2026-10-25T17:49:48.672241",
     "created_at": "2026-10-25T17:49:48.672253"
+  },
+  {
+    "area_cultivated_acres": 1.5,
+    "crop_name": "Groundnut (மணிலா / நிலக்கடலை)",
+    "expected_harvest": "2027-02-07",
+    "plot_id": "plot_delta_01",
+    "season": "Samba / Thaladi (சம்பா / தாளடி)",
+    "sowing_date": "2026-10-25",
+    "variety": "TMV-7",
+    "status": "active",
+    "stage": "Sowing / Nursery (விதைப்பு / நாற்றங்கால்)",
+    "user_id": "farmer",
+    "id": "d76e34d2-a547-4333-a159-801659362a2f",
+    "updated_at": "2026-10-25T18:45:41.159684",
+    "created_at": "2026-10-25T18:45:41.159692"
   }
 ]

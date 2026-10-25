@@ -94,5 +94,38 @@
     "id": "f051cdf5-ec87-411d-9b8a-28e91b1edd24",
     "updated_at": "2026-10-25T17:49:49.173931",
     "created_at": "2026-10-25T17:49:49.173945"
+  },
+  {
+    "type": "income",
+    "category": "Livestock Sale / ஆடு மாடு விற்பனை",
+    "amount": 22000.0,
+    "date": "2026-10-24",
+    "desc": "1 Mother Goat and 2 small male goats",
+    "user_id": "manishankar",
+    "id": "8bd6e928-a8f0-4f64-a037-f4e9338b6cd9",
+    "updated_at": "2026-10-25T18:41:38.308035",
+    "created_at": "2026-10-25T18:41:38.308045"
+  },
+  {
+    "type": "income",
+    "category": "Hen",
+    "amount": 500.0,
+    "date": "2026-10-21",
+    "desc": "1.5Kg chicken to perippa",
+    "user_id": "manishankar",
+    "id": "fb7fa651-5136-4e7c-8389-03d53417f8da",
+    "updated_at": "2026-10-25T18:42:45.698235",
+    "created_at": "2026-10-25T18:42:45.699215"
+  },
+  {
+    "amount": 2500.0,
+    "category": "Fertilizer / உரங்கள்",
+    "date": "2026-10-25",
+    "desc": "Neem Coated Urea (2 bags)",
+    "type": "expense",
+    "user_id": "farmer",
+    "id": "5de361e9-cf10-46f1-a61a-f8ebfb072370",
+    "updated_at": "2026-10-25T18:45:41.172830",
+    "created_at": "2026-10-25T18:45:41.172840"
   }
 ]

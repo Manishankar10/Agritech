@@ -337,6 +337,8 @@ def api_crops():
         data = request.json or request.form.to_dict()
         if not data.get("status"):
             data["status"] = "active"
+        if not data.get("stage"):
+            data["stage"] = "Sowing / Nursery (விதைப்பு / நாற்றங்கால்)"
         item = db_store.save_user_item("crops", data, uname)
         return jsonify(item), 201
     
@@ -379,11 +381,12 @@ def api_livestock():
     
     animals = db_store.get_user_items("livestock", uname)
     breeding_records = db_store.get_user_items("breeding_records", uname)
+    sorted_breeding = sorted(breeding_records, key=lambda x: str(x.get("date", "")), reverse=True)
     
     for animal in animals:
         aid = str(animal.get("id"))
         species = (animal.get("species") or "cow").lower()
-        active_rec = next((r for r in breeding_records if str(r.get("animal_id")) == aid and r.get("status") == "active"), None)
+        active_rec = next((r for r in sorted_breeding if str(r.get("animal_id")) == aid and r.get("status") == "active"), None)
         if active_rec:
             ev_date = active_rec.get("date")
             if species in ["cow", "buffalo", "cattle"]:
@@ -412,9 +415,31 @@ def api_breeding():
         data = request.json or request.form.to_dict()
         if not data.get("status"):
             data["status"] = "active"
+
+        aid = str(data.get("animal_id", "")).strip()
+        if aid:
+            # Look up animal tag and update animal status to 'pregnant'
+            animals = db_store.get_user_items("livestock", uname)
+            target_animal = next((a for a in animals if str(a.get("id")) == aid), None)
+            if target_animal:
+                data["animal_tag"] = target_animal.get("tag_id") or target_animal.get("name") or aid
+                if target_animal.get("status") != "pregnant":
+                    target_animal["status"] = "pregnant"
+                    db_store.save_user_item("livestock", target_animal, uname)
+
+            # Supersede prior active breeding records for this animal so latest takes effect
+            existing_recs = db_store.get_user_items("breeding_records", uname)
+            for rec in existing_recs:
+                if str(rec.get("animal_id")) == aid and rec.get("status") == "active":
+                    rec["status"] = "superseded"
+                    db_store.save_user_item("breeding_records", rec, uname)
+
         item = db_store.save_user_item("breeding_records", data, uname)
         return jsonify(item), 201
-    return jsonify(db_store.get_user_items("breeding_records", uname))
+
+    recs = db_store.get_user_items("breeding_records", uname)
+    recs.sort(key=lambda x: str(x.get("date", "")), reverse=True)
+    return jsonify(recs)
 
 @app.route("/api/breeding/calculate")
 @login_required
@@ -449,6 +474,13 @@ def api_milk():
             data["total_liters"] = round(m + e, 2)
             rate = float(data.get("rate_per_liter", 38.0))
             data["total_amount"] = round(data["total_liters"] * rate, 2)
+
+            aid = str(data.get("animal_id", "")).strip()
+            if aid:
+                animals = db_store.get_user_items("livestock", uname)
+                target_animal = next((a for a in animals if str(a.get("id")) == aid), None)
+                if target_animal:
+                    data["animal_tag"] = target_animal.get("tag_id") or target_animal.get("name") or aid
         except Exception:
             pass
         item = db_store.save_user_item("milk_records", data, uname)

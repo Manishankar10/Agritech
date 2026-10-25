@@ -235,6 +235,7 @@ async function viewPriceTrend(commodityName) {
 // Crops & Plots Management
 // ----------------------------------------------------
 async function loadCropsAndPlots() {
+  await populateQuickLogDropdowns();
   const cropsContainer = document.getElementById("cropsContainer");
   const plotsContainer = document.getElementById("plotsContainer");
   if (!cropsContainer && !plotsContainer) return;
@@ -372,6 +373,7 @@ async function advanceCropStage(cropId, currentStage) {
 // Livestock & Breeding Management
 // ----------------------------------------------------
 async function loadLivestock() {
+  await populateQuickLogDropdowns();
   const container = document.getElementById("livestockGrid");
   if (!container) return;
 
@@ -471,18 +473,26 @@ async function deleteLivestock(animalId) {
   loadLivestock();
 }
 
-function openBreedingModal(animalId) {
+async function openBreedingModal(animalId) {
+  await populateQuickLogDropdowns();
   const sel = document.getElementById("breedingAnimalId");
-  if (sel) sel.value = animalId;
-  const modal = new bootstrap.Modal(document.getElementById("breedingModal"));
-  modal.show();
+  if (sel && animalId) sel.value = animalId;
+  const modalEl = document.getElementById("breedingModal");
+  if (modalEl) {
+    const modal = bootstrap.Modal.getInstance(modalEl) || (bootstrap.Modal.getOrCreateInstance ? bootstrap.Modal.getOrCreateInstance(modalEl) : new bootstrap.Modal(modalEl));
+    modal.show();
+  }
 }
 
-function openMilkModal(animalId) {
+async function openMilkModal(animalId) {
+  await populateQuickLogDropdowns();
   const sel = document.getElementById("milkAnimalId");
-  if (sel) sel.value = animalId;
-  const modal = new bootstrap.Modal(document.getElementById("milkModal"));
-  modal.show();
+  if (sel && animalId) sel.value = animalId;
+  const modalEl = document.getElementById("milkModal");
+  if (modalEl) {
+    const modal = bootstrap.Modal.getInstance(modalEl) || (bootstrap.Modal.getOrCreateInstance ? bootstrap.Modal.getOrCreateInstance(modalEl) : new bootstrap.Modal(modalEl));
+    modal.show();
+  }
 }
 
 // ----------------------------------------------------
@@ -589,25 +599,124 @@ async function deleteTxn(id) {
 }
 
 // ----------------------------------------------------
+// Modal Dropdowns Populator (Works on Any Page)
+// ----------------------------------------------------
+async function populateQuickLogDropdowns() {
+  const breedingSel = document.getElementById("breedingAnimalId");
+  const milkSel = document.getElementById("milkAnimalId");
+  const cropPlotSel = document.getElementById("cropPlotId");
+
+  if (breedingSel || milkSel) {
+    try {
+      const res = await fetch("/api/livestock");
+      const animals = await res.json();
+      if (Array.isArray(animals)) {
+        if (breedingSel) {
+          const currentVal = breedingSel.value;
+          breedingSel.innerHTML = `<option value="">-- Select Animal (கால்நடை) --</option>` +
+            animals.map(a => `<option value="${a.id}">${a.tag_id} - ${a.name || a.breed} (${(a.species || '').toUpperCase()})</option>`).join("");
+          if (currentVal) breedingSel.value = currentVal;
+        }
+        if (milkSel) {
+          const currentVal = milkSel.value;
+          const milch = animals.filter(a => a.species === "cow" || a.species === "buffalo");
+          milkSel.innerHTML = `<option value="">-- Select Cow / Buffalo (கறவை மாடு) --</option>` +
+            milch.map(a => `<option value="${a.id}">${a.tag_id} - ${a.name || a.breed}</option>`).join("");
+          if (currentVal) milkSel.value = currentVal;
+        }
+      }
+    } catch (err) {
+      console.error("Failed to populate animal dropdowns:", err);
+    }
+  }
+
+  if (cropPlotSel) {
+    try {
+      const res = await fetch("/api/plots");
+      const plots = await res.json();
+      if (Array.isArray(plots)) {
+        const currentVal = cropPlotSel.value;
+        cropPlotSel.innerHTML = `<option value="">-- Select Farmland Plot (நிலம்) --</option>` +
+          plots.map(p => `<option value="${p.id}">${p.name} (${p.area_acres} ac)</option>`).join("");
+        if (currentVal) cropPlotSel.value = currentVal;
+      }
+    } catch (err) {
+      console.error("Failed to populate plot dropdowns:", err);
+    }
+  }
+
+  // Pre-fill any empty date inputs with today's date
+  const today = new Date().toISOString().split("T")[0];
+  document.querySelectorAll("input[type='date']").forEach(inp => {
+    if (!inp.value) inp.value = today;
+  });
+}
+
+function safeCloseModal(modalId) {
+  const modalEl = document.getElementById(modalId);
+  if (!modalEl) return;
+
+  try {
+    const inst = bootstrap.Modal.getInstance(modalEl) || (bootstrap.Modal.getOrCreateInstance ? bootstrap.Modal.getOrCreateInstance(modalEl) : null);
+    if (inst) {
+      inst.hide();
+    }
+  } catch (err) {
+    console.warn("safeCloseModal notice:", err);
+  }
+
+  // Also trigger dismiss button if modal is still active
+  const closeBtn = modalEl.querySelector("[data-bs-dismiss='modal']");
+  if (closeBtn) closeBtn.click();
+
+  // Clean up any remaining backdrop elements and restore body scrolling
+  setTimeout(() => {
+    document.querySelectorAll(".modal-backdrop").forEach(b => b.remove());
+    document.body.classList.remove("modal-open");
+    document.body.style.removeProperty("overflow");
+    document.body.style.removeProperty("padding-right");
+  }, 250);
+}
+
+// ----------------------------------------------------
 // Global Form Submit Handlers
 // ----------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
+  populateQuickLogDropdowns();
+
   // Plot Form
   const plotForm = document.getElementById("plotForm");
   if (plotForm) {
     plotForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const fd = new FormData(plotForm);
-      const data = Object.fromEntries(fd.entries());
-      await fetch("/api/plots", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-      plotForm.reset();
-      bootstrap.Modal.getInstance(document.getElementById("plotModal")).hide();
-      showToast("Plot registered successfully");
-      loadCropsAndPlots();
+      const submitBtn = plotForm.querySelector("button[type='submit']");
+      if (submitBtn) submitBtn.disabled = true;
+
+      try {
+        const fd = new FormData(plotForm);
+        const data = Object.fromEntries(fd.entries());
+        const res = await fetch("/api/plots", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+          plotForm.reset();
+          safeCloseModal("plotModal");
+          showToast("Plot registered successfully!", "success");
+          if (typeof loadDashboardOverview === "function") loadDashboardOverview();
+          if (typeof loadCropsAndPlots === "function") loadCropsAndPlots();
+          populateQuickLogDropdowns();
+        } else {
+          showToast("Failed to register plot", "danger");
+        }
+      } catch (err) {
+        console.error("Plot save error:", err);
+        showToast("Error registering plot", "danger");
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
     });
   }
 
@@ -616,17 +725,41 @@ document.addEventListener("DOMContentLoaded", () => {
   if (cropForm) {
     cropForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const fd = new FormData(cropForm);
-      const data = Object.fromEntries(fd.entries());
-      await fetch("/api/crops", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-      cropForm.reset();
-      bootstrap.Modal.getInstance(document.getElementById("cropModal")).hide();
-      showToast("New planting logged successfully");
-      loadCropsAndPlots();
+      const submitBtn = cropForm.querySelector("button[type='submit']");
+      if (submitBtn) submitBtn.disabled = true;
+
+      try {
+        const fd = new FormData(cropForm);
+        const data = Object.fromEntries(fd.entries());
+
+        if (!data.plot_id) {
+          showToast("Please select a farmland plot first", "warning");
+          if (submitBtn) submitBtn.disabled = false;
+          return;
+        }
+
+        const res = await fetch("/api/crops", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+          cropForm.reset();
+          safeCloseModal("cropModal");
+          showToast("New planting logged successfully!", "success");
+          if (typeof loadDashboardOverview === "function") loadDashboardOverview();
+          if (typeof loadCropsAndPlots === "function") loadCropsAndPlots();
+          populateQuickLogDropdowns();
+        } else {
+          showToast("Failed to log planting", "danger");
+        }
+      } catch (err) {
+        console.error("Crop save error:", err);
+        showToast("Error logging planting", "danger");
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
     });
   }
 
@@ -635,17 +768,34 @@ document.addEventListener("DOMContentLoaded", () => {
   if (animalForm) {
     animalForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const fd = new FormData(animalForm);
-      const data = Object.fromEntries(fd.entries());
-      await fetch("/api/livestock", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-      animalForm.reset();
-      bootstrap.Modal.getInstance(document.getElementById("animalModal")).hide();
-      showToast("Animal registered successfully");
-      loadLivestock();
+      const submitBtn = animalForm.querySelector("button[type='submit']");
+      if (submitBtn) submitBtn.disabled = true;
+
+      try {
+        const fd = new FormData(animalForm);
+        const data = Object.fromEntries(fd.entries());
+        const res = await fetch("/api/livestock", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+          animalForm.reset();
+          safeCloseModal("animalModal");
+          showToast("Animal registered successfully!", "success");
+          if (typeof loadDashboardOverview === "function") loadDashboardOverview();
+          if (typeof loadLivestock === "function") loadLivestock();
+          populateQuickLogDropdowns();
+        } else {
+          showToast("Failed to register animal", "danger");
+        }
+      } catch (err) {
+        console.error("Animal save error:", err);
+        showToast("Error registering animal", "danger");
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
     });
   }
 
@@ -654,17 +804,41 @@ document.addEventListener("DOMContentLoaded", () => {
   if (breedingForm) {
     breedingForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const fd = new FormData(breedingForm);
-      const data = Object.fromEntries(fd.entries());
-      await fetch("/api/breeding", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-      breedingForm.reset();
-      bootstrap.Modal.getInstance(document.getElementById("breedingModal")).hide();
-      showToast("Breeding event recorded! Milestones calculated.");
-      loadLivestock();
+      const submitBtn = breedingForm.querySelector("button[type='submit']");
+      if (submitBtn) submitBtn.disabled = true;
+
+      try {
+        const fd = new FormData(breedingForm);
+        const data = Object.fromEntries(fd.entries());
+
+        if (!data.animal_id) {
+          showToast("Please select an animal first", "warning");
+          if (submitBtn) submitBtn.disabled = false;
+          return;
+        }
+
+        const res = await fetch("/api/breeding", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+          breedingForm.reset();
+          safeCloseModal("breedingModal");
+          showToast("Breeding event recorded! Gestation countdown started.", "success");
+          if (typeof loadDashboardOverview === "function") loadDashboardOverview();
+          if (typeof loadLivestock === "function") loadLivestock();
+          populateQuickLogDropdowns();
+        } else {
+          showToast("Failed to record breeding event", "danger");
+        }
+      } catch (err) {
+        console.error("Breeding save error:", err);
+        showToast("Error recording breeding event", "danger");
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
     });
   }
 
@@ -673,16 +847,42 @@ document.addEventListener("DOMContentLoaded", () => {
   if (milkForm) {
     milkForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const fd = new FormData(milkForm);
-      const data = Object.fromEntries(fd.entries());
-      await fetch("/api/milk", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-      milkForm.reset();
-      bootstrap.Modal.getInstance(document.getElementById("milkModal")).hide();
-      showToast("Daily milk log saved!");
+      const submitBtn = milkForm.querySelector("button[type='submit']");
+      if (submitBtn) submitBtn.disabled = true;
+
+      try {
+        const fd = new FormData(milkForm);
+        const data = Object.fromEntries(fd.entries());
+
+        if (!data.animal_id) {
+          showToast("Please select a cow or buffalo first", "warning");
+          if (submitBtn) submitBtn.disabled = false;
+          return;
+        }
+
+        const res = await fetch("/api/milk", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+          milkForm.reset();
+          safeCloseModal("milkModal");
+          showToast("Daily milk yield recorded successfully!", "success");
+          if (typeof loadDashboardOverview === "function") loadDashboardOverview();
+          if (typeof loadLivestock === "function") loadLivestock();
+          if (typeof loadMilkLogs === "function") loadMilkLogs();
+          populateQuickLogDropdowns();
+        } else {
+          showToast("Failed to save milk log", "danger");
+        }
+      } catch (err) {
+        console.error("Milk save error:", err);
+        showToast("Error saving milk record", "danger");
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
     });
   }
 
@@ -691,17 +891,33 @@ document.addEventListener("DOMContentLoaded", () => {
   if (finForm) {
     finForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const fd = new FormData(finForm);
-      const data = Object.fromEntries(fd.entries());
-      await fetch("/api/financials", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-      finForm.reset();
-      bootstrap.Modal.getInstance(document.getElementById("txnModal")).hide();
-      showToast("Transaction saved successfully");
-      loadFinancials();
+      const submitBtn = finForm.querySelector("button[type='submit']");
+      if (submitBtn) submitBtn.disabled = true;
+
+      try {
+        const fd = new FormData(finForm);
+        const data = Object.fromEntries(fd.entries());
+        const res = await fetch("/api/financials", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+          finForm.reset();
+          safeCloseModal("txnModal");
+          showToast("Financial transaction recorded successfully", "success");
+          if (typeof loadDashboardOverview === "function") loadDashboardOverview();
+          if (typeof loadFinancials === "function") loadFinancials();
+        } else {
+          showToast("Failed to save transaction", "danger");
+        }
+      } catch (err) {
+        console.error("Financials save error:", err);
+        showToast("Error saving transaction", "danger");
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
     });
   }
 
@@ -710,14 +926,34 @@ document.addEventListener("DOMContentLoaded", () => {
   if (settingsForm) {
     settingsForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const fd = new FormData(settingsForm);
-      const data = Object.fromEntries(fd.entries());
-      await fetch("/api/settings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-      showToast("Settings updated successfully!");
+      const submitBtn = settingsForm.querySelector("button[type='submit']");
+      if (submitBtn) submitBtn.disabled = true;
+
+      try {
+        const fd = new FormData(settingsForm);
+        const data = Object.fromEntries(fd.entries());
+        const res = await fetch("/api/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+          showToast("Settings updated successfully!", "success");
+        } else {
+          showToast("Failed to update settings", "danger");
+        }
+      } catch (err) {
+        console.error("Settings save error:", err);
+        showToast("Error updating settings", "danger");
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
     });
   }
+});
+
+// Re-populate modal dropdowns anytime a modal begins to open
+document.addEventListener("show.bs.modal", () => {
+  populateQuickLogDropdowns();
 });

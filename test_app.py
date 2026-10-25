@@ -179,5 +179,89 @@ class TestUzhavanDesk(unittest.TestCase):
             self.assertIn("rate_per_kg_str", p)
             self.assertTrue(len(p["rate_per_kg_str"]) > 0)
 
+    def test_quick_log_breeding_record(self):
+        """Verifies quick logging an AI/breeding event and updating animal status."""
+        self.client.post("/login", data={"action": "demo"}, follow_redirects=True)
+        today_str = date.today().isoformat()
+        breed_data = {
+            "animal_id": "animal_tn02",
+            "event_type": "insemination",
+            "date": today_str,
+            "semen_bull_info": "Kangayam Purebred Bull #402",
+            "technician": "Dr. Senthil / VAS"
+        }
+        resp = self.client.post("/api/breeding", json=breed_data)
+        self.assertEqual(resp.status_code, 201)
+        created = json.loads(resp.data)
+        self.assertEqual(created["animal_id"], "animal_tn02")
+        self.assertIn("TN-02-KAMALAM", created.get("animal_tag", ""))
+
+        # Verify livestock endpoint now shows animal_tn02 with active reproduction
+        ls_resp = self.client.get("/api/livestock")
+        self.assertEqual(ls_resp.status_code, 200)
+        animals = json.loads(ls_resp.data)
+        kamalam = next((a for a in animals if a["id"] == "animal_tn02"), None)
+        self.assertIsNotNone(kamalam)
+        self.assertEqual(kamalam.get("status"), "pregnant")
+        self.assertIn("reproduction", kamalam)
+        self.assertEqual(kamalam["reproduction"]["days_pregnant"], 0)
+
+    def test_quick_log_milk_record(self):
+        """Verifies quick logging daily milk yield and financial calculation."""
+        self.client.post("/login", data={"action": "demo"}, follow_redirects=True)
+        milk_data = {
+            "animal_id": "animal_tn01",
+            "date": date.today().isoformat(),
+            "morning_liters": 8.5,
+            "evening_liters": 6.5,
+            "rate_per_liter": 40.0,
+            "fat_pct": 4.5,
+            "snf_pct": 8.8,
+            "buyer": "Aavin Co-op"
+        }
+        resp = self.client.post("/api/milk", json=milk_data)
+        self.assertEqual(resp.status_code, 201)
+        created = json.loads(resp.data)
+        self.assertEqual(created["total_liters"], 15.0)
+        self.assertEqual(created["total_amount"], 600.0)
+        self.assertIn("TN-01-LAKSHMI", created.get("animal_tag", ""))
+
+    def test_quick_log_financial_transaction(self):
+        """Verifies quick logging financial expense and revenue records."""
+        self.client.post("/login", data={"action": "demo"}, follow_redirects=True)
+        exp_data = {
+            "type": "expense",
+            "category": "Fertilizer / உரங்கள்",
+            "amount": 2500.0,
+            "date": date.today().isoformat(),
+            "desc": "Neem Coated Urea (2 bags)"
+        }
+        resp = self.client.post("/api/financials", json=exp_data)
+        self.assertEqual(resp.status_code, 201)
+
+        # Verify overview stats reflect new financial record
+        ov_resp = self.client.get("/api/overview")
+        self.assertEqual(ov_resp.status_code, 200)
+        ov = json.loads(ov_resp.data)
+        self.assertTrue(ov["total_expense"] >= 2500.0)
+
+    def test_quick_log_crop_planting(self):
+        """Verifies quick logging a new crop planting."""
+        self.client.post("/login", data={"action": "demo"}, follow_redirects=True)
+        crop_data = {
+            "plot_id": "plot_delta_01",
+            "crop_name": "Groundnut (மணிலா / நிலக்கடலை)",
+            "variety": "TMV-7",
+            "season": "Samba / Thaladi (சம்பா / தாளடி)",
+            "sowing_date": date.today().isoformat(),
+            "expected_harvest": (date.today() + timedelta(days=105)).isoformat(),
+            "area_cultivated_acres": 1.5
+        }
+        resp = self.client.post("/api/crops", json=crop_data)
+        self.assertEqual(resp.status_code, 201)
+        created = json.loads(resp.data)
+        self.assertEqual(created["status"], "active")
+        self.assertIn("Sowing", created["stage"])
+
 if __name__ == "__main__":
     unittest.main()
