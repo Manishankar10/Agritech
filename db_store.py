@@ -12,10 +12,18 @@ if _MONGO_URI:
         from pymongo import MongoClient
         _client = MongoClient(_MONGO_URI, serverSelectionTimeoutMS=5000)
         _client.admin.command('ping')
-        try:
-            db = _client.get_default_database()
-        except Exception:
-            db = _client.get_database("uzhavan_db")
+        custom_db = os.environ.get("MONGO_DB_NAME")
+        if custom_db:
+            db = _client.get_database(custom_db.strip())
+        else:
+            try:
+                def_db = _client.get_default_database()
+                if def_db is not None and def_db.name not in ("admin", "local", "config", "test", "capital_desk"):
+                    db = def_db
+                else:
+                    db = _client.get_database("uzhavan_db")
+            except Exception:
+                db = _client.get_database("uzhavan_db")
         print(f"[OK] Successfully connected to MongoDB Atlas database: '{db.name}'!")
     except Exception as e:
         print(f"[WARN] MongoDB Atlas connection error (fallback to local JSON): {e}")
