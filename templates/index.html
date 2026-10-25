@@ -157,7 +157,7 @@
      MODALS
      ========================================== -->
 
-<!-- Enhanced Financial Transaction Modal -->
+<!-- Professional Financial Transaction Modal -->
 <div class="modal fade" id="txnModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content border-0 shadow">
@@ -168,8 +168,8 @@
               <i class="bi bi-cash-stack"></i>
             </div>
             <div>
-              <h6 class="modal-title fw-bold mb-0 text-dark" id="txnModalTitle" data-i18n="add_txn_btn">Record Financial Transaction</h6>
-              <div class="small text-muted">Crop Sales, Farm Expenses, Produce Quantities & Rates</div>
+              <h6 class="modal-title fw-bold mb-0 text-dark" id="txnModalTitle" data-i18n="add_txn_btn">Record Transaction</h6>
+              <div class="small text-muted">Crop sales, farm inputs, labour & trade settlements</div>
             </div>
           </div>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -179,111 +179,183 @@
           <!-- Type & Category Row -->
           <div class="row g-3 mb-3">
             <div class="col-md-5">
-              <label class="form-label small fw-bold text-dark">
-                <i class="bi bi-arrow-left-right me-1 text-primary"></i>Transaction Type (பரிவர்த்தனை வகை)
-              </label>
+              <label class="form-label small fw-bold text-dark">Transaction Type</label>
               <div class="d-flex gap-2">
                 <input type="radio" class="btn-check" name="type" id="txnTypeIncome" value="income" onchange="onTxnTypeChange('income')" checked>
                 <label class="btn btn-outline-success btn-sm flex-fill fw-bold py-2" for="txnTypeIncome">
-                  <i class="bi bi-plus-circle-fill me-1"></i> Income (வரவு / விற்பனை)
+                  <i class="bi bi-plus-circle-fill me-1"></i> Income (Sales & Yield)
                 </label>
 
                 <input type="radio" class="btn-check" name="type" id="txnTypeExpense" value="expense" onchange="onTxnTypeChange('expense')">
                 <label class="btn btn-outline-danger btn-sm flex-fill fw-bold py-2" for="txnTypeExpense">
-                  <i class="bi bi-dash-circle-fill me-1"></i> Expense (செலவு)
+                  <i class="bi bi-dash-circle-fill me-1"></i> Expense (Farm Costs)
                 </label>
               </div>
             </div>
 
             <div class="col-md-4">
-              <label class="form-label small fw-bold text-dark" data-i18n="category">Category (வகை)</label>
+              <label class="form-label small fw-bold text-dark" data-i18n="category">Category</label>
               <select class="form-select" name="category" id="txnCategorySelect" onchange="onTxnCategorySelectChange()">
                 <!-- Populated dynamically based on Income / Expense -->
               </select>
             </div>
 
             <div class="col-md-3">
-              <label class="form-label small fw-bold text-dark" data-i18n="date">Date (தேதி)</label>
+              <label class="form-label small fw-bold text-dark" data-i18n="date">Date</label>
               <input type="date" class="form-control" name="date" id="txnDate" required>
             </div>
           </div>
 
-          <!-- Structured Crop & Agricultural Trade Section -->
-          <div class="card bg-light border p-3 mb-3 rounded" id="cropTradeSection">
+          <!-- Structured Produce & Trade Settlement Section -->
+          <div class="card bg-light border p-3 mb-3 rounded-3" id="cropTradeSection">
             <div class="d-flex justify-content-between align-items-center mb-2">
               <span class="small fw-bold text-dark">
-                <i class="bi bi-basket-fill text-success me-1"></i> Produce & Quantity Details (விளைபொருள் விவரம் & எடை)
+                <i class="bi bi-basket2-fill text-success me-1"></i> Produce & Quantity Details
               </span>
-              <span class="badge bg-success-subtle text-success border small">Auto-Calculates ₹ Amount</span>
+              <span class="badge bg-white text-secondary border font-monospace small">Auto-Calculates Payout</span>
             </div>
 
             <div class="row g-2 mb-2">
               <div class="col-md-5">
-                <label class="form-label small text-muted mb-1">Crop / Commodity (பயிர் / விளைபொருள்)</label>
-                <input type="text" class="form-control" name="commodity" id="txnCommodity" list="commodityTradeListDash" placeholder="e.g. Kuchchi Kilangu (குச்சிக் கிழங்கு)">
+                <label class="form-label small text-muted mb-1">Produce / Crop</label>
+                <input type="text" class="form-control form-control-sm" name="commodity" id="txnCommodity" list="commodityTradeListDash" placeholder="e.g. Tapioca / Kuchchi Kilangu">
                 <datalist id="commodityTradeListDash">
-                  <option value="Kuchchi Kilangu / Tapioca (மரவள்ளிக் கிழங்கு / குச்சிக் கிழங்கு)">
-                  <option value="Paddy / Rice (நெல் / பொன்னி / குண்டு நெல்)">
-                  <option value="Mature Coconut with Husk (முழு மட்டைத் தேங்காய்)">
+                  <option value="Tapioca / Kuchchi Kilangu (மரவள்ளி)">
+                  <option value="Paddy / Rice (நெல்)">
+                  <option value="Mature Coconut (முழு மட்டைத் தேங்காய்)">
                   <option value="De-husked Coconut (மட்டை உரித்த தேங்காய்)">
-                  <option value="Copra - Milling (ஆட்டு கொப்பரைத் தேங்காய்)">
-                  <option value="Copra - Edible Ball (முழு உருண்டை கொப்பரை)">
+                  <option value="Copra - Milling (ஆட்டு கொப்பரை)">
+                  <option value="Copra - Edible Ball (உருண்டை கொப்பரை)">
                   <option value="Sugarcane (கரும்பு)">
                   <option value="Turmeric (மஞ்சள்)">
-                  <option value="Banana - Nendran / Poovan (வாழை)">
-                  <option value="Small Onion / Shallots (சின்ன வெங்காயம்)">
+                  <option value="Banana (வாழை)">
+                  <option value="Small Onion (சின்ன வெங்காயம்)">
                   <option value="Tomato (நாட்டுத் தக்காளி)">
-                  <option value="Groundnut (மணிலா / நிலக்கடலை)">
+                  <option value="Groundnut (நிலக்கடலை)">
                   <option value="Cotton (பருத்தி)">
                   <option value="Cow Milk (பசும்பால்)">
                 </datalist>
               </div>
 
               <div class="col-md-3 col-6">
-                <label class="form-label small text-muted mb-1">Total Quantity (அளவு / எடை)</label>
-                <input type="number" step="0.01" class="form-control fw-bold tabular-nums" name="quantity" id="txnQuantity" placeholder="e.g. 14.5" oninput="calculateTxnTotal()">
+                <label class="form-label small text-muted mb-1">Gross Quantity</label>
+                <input type="number" step="0.001" class="form-control form-control-sm fw-bold tabular-nums" name="quantity" id="txnQuantity" placeholder="e.g. 15.370" oninput="calculateTxnTotal()">
               </div>
 
               <div class="col-md-4 col-6">
-                <label class="form-label small text-muted mb-1">Unit (அலகு)</label>
-                <select class="form-select fw-medium" name="unit" id="txnUnit" onchange="calculateTxnTotal()">
-                  <option value="Tons">Tons / டன்கள் (1,000 kg)</option>
-                  <option value="Quintals">Quintals / குவிண்டால் (100 kg)</option>
-                  <option value="Bags (75kg)">Bags (75 kg) / மூட்டை</option>
-                  <option value="Bags (50kg)">Bags (50 kg) / மூட்டை</option>
-                  <option value="Kg">Kg / கிலோகிராம்</option>
-                  <option value="Pieces">Pieces / எண்ணிக்கை (காய்)</option>
-                  <option value="Liters">Liters / லிட்டர்</option>
-                  <option value="Bunches">Bunches / வாழைத் தார்</option>
+                <label class="form-label small text-muted mb-1">Unit</label>
+                <select class="form-select form-select-sm fw-medium" name="unit" id="txnUnit" onchange="calculateTxnTotal()">
+                  <option value="Tons">Tons (1,000 kg)</option>
+                  <option value="Quintals">Quintals (100 kg)</option>
+                  <option value="Bags (75kg)">Bags (75 kg)</option>
+                  <option value="Bags (50kg)">Bags (50 kg)</option>
+                  <option value="Kg">Kg</option>
+                  <option value="Pieces">Pieces / Coconuts</option>
+                  <option value="Liters">Liters</option>
+                  <option value="Bunches">Bunches</option>
                 </select>
               </div>
             </div>
 
-            <div class="row g-2 align-items-center">
+            <div class="row g-2 align-items-center mb-3">
               <div class="col-md-6">
-                <label class="form-label small text-muted mb-1" id="txnRateLabel">Rate / Price per Ton (₹ / டன் விலை)</label>
-                <div class="input-group">
+                <label class="form-label small text-muted mb-1" id="txnRateLabel">Rate / Price per Ton (₹)</label>
+                <div class="input-group input-group-sm">
                   <span class="input-group-text bg-white">₹</span>
-                  <input type="number" step="0.01" class="form-control fw-bold tabular-nums" name="rate_per_unit" id="txnRate" placeholder="e.g. 9200" oninput="calculateTxnTotal()">
+                  <input type="number" step="0.01" class="form-control fw-bold tabular-nums" name="rate_per_unit" id="txnRate" placeholder="e.g. 11600" oninput="calculateTxnTotal()">
                 </div>
               </div>
 
               <div class="col-md-6 pt-md-3">
-                <div id="txnCalcPreview" class="badge bg-white text-dark border p-2 w-100 text-start font-monospace small">
-                  <i class="bi bi-calculator me-1 text-primary"></i> Enter Quantity & Rate to auto-calculate total
+                <div class="small text-muted">
+                  <i class="bi bi-info-circle me-1 text-primary"></i> Gross value calculated on net weight
                 </div>
+              </div>
+            </div>
+
+            <!-- Deductions & Direct Expenses Card -->
+            <div class="card border p-2 mb-2 bg-white rounded-3 shadow-none">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="small fw-bold text-dark">
+                  <i class="bi bi-funnel text-warning me-1"></i> Weight Deductions & Charges Paid (Optional)
+                </span>
+                <span class="small text-muted font-monospace" style="font-size: 0.72rem;">Sand deduction & Labour/Freight</span>
+              </div>
+
+              <!-- Row 1: Weight Deductions -->
+              <div class="row g-2 mb-2">
+                <div class="col-md-4 col-6">
+                  <label class="form-label small text-muted mb-1">Sand / Tare Deduction (kg/Ton)</label>
+                  <div class="input-group input-group-sm">
+                    <input type="number" step="0.1" class="form-control tabular-nums" name="deduction_per_ton_kg" id="txnDeductionPerTon" placeholder="e.g. 50" oninput="calculateTxnTotal()">
+                    <span class="input-group-text">kg/T</span>
+                  </div>
+                  <div class="form-text text-muted" style="font-size: 0.7rem;">e.g. 50 kg subtracted per ton</div>
+                </div>
+
+                <div class="col-md-4 col-6">
+                  <label class="form-label small text-muted mb-1">Flat Waste Deduction (kg)</label>
+                  <div class="input-group input-group-sm">
+                    <input type="number" step="0.1" class="form-control tabular-nums" name="deduction_flat_kg" id="txnDeductionFlat" placeholder="0" oninput="calculateTxnTotal()">
+                    <span class="input-group-text">kg</span>
+                  </div>
+                  <div class="form-text text-muted" style="font-size: 0.7rem;">Optional flat weight deduction</div>
+                </div>
+
+                <div class="col-md-4 col-12">
+                  <label class="form-label small text-muted mb-1">Net Billable Weight</label>
+                  <div class="input-group input-group-sm">
+                    <input type="text" class="form-control bg-light fw-bold tabular-nums text-success" name="net_quantity" id="txnNetQuantity" placeholder="0.00" readonly>
+                    <span class="input-group-text" id="txnNetUnitLabel">Tons</span>
+                  </div>
+                  <div class="form-text text-muted" style="font-size: 0.7rem;">Net billable produce weight</div>
+                </div>
+              </div>
+
+              <!-- Row 2: Charges / Expenses Paid -->
+              <div class="row g-2 pt-2 border-top">
+                <div class="col-md-4 col-6">
+                  <label class="form-label small text-muted mb-1">Harvest / Labour Paid (₹)</label>
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">₹</span>
+                    <input type="number" step="0.01" class="form-control tabular-nums" name="harvest_charges" id="txnHarvestCharges" placeholder="0.00" oninput="calculateTxnTotal()">
+                  </div>
+                </div>
+
+                <div class="col-md-4 col-6">
+                  <label class="form-label small text-muted mb-1">Transport / Freight (₹)</label>
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">₹</span>
+                    <input type="number" step="0.01" class="form-control tabular-nums" name="transport_charges" id="txnTransportCharges" placeholder="0.00" oninput="calculateTxnTotal()">
+                  </div>
+                </div>
+
+                <div class="col-md-4 col-12">
+                  <label class="form-label small text-muted mb-1">Weighbridge / Commission (₹)</label>
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">₹</span>
+                    <input type="number" step="0.01" class="form-control tabular-nums" name="other_charges" id="txnOtherCharges" placeholder="0.00" oninput="calculateTxnTotal()">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Settlement Live Summary Banner -->
+            <div id="txnCalcPreview" class="border rounded p-2 mb-2 bg-white small font-monospace">
+              <div class="text-muted d-flex align-items-center">
+                <i class="bi bi-calculator me-1 text-primary"></i> Enter Quantity & Rate to auto-calculate settlement
               </div>
             </div>
 
             <!-- Counterparty / Buyer Details -->
             <div class="row g-2 mt-2 pt-2 border-top">
               <div class="col-md-6">
-                <label class="form-label small text-muted mb-1">Buyer / Mill / Trader / Merchant (வாங்குபவர் / சேகோ ஆலை / வியாபாரி)</label>
-                <input type="text" class="form-control" name="buyer" id="txnBuyer" placeholder="e.g. Salem Sago Factory / Trader Murugan">
+                <label class="form-label small text-muted mb-1">Buyer / Mill / Trader</label>
+                <input type="text" class="form-control form-control-sm" name="buyer" id="txnBuyer" placeholder="e.g. Salem Sago Factory / Trader Murugan">
               </div>
               <div class="col-md-6">
-                <label class="form-label small text-muted mb-1">Weighbridge Slip / Bill / Lorry # (எடை ரசீது / லாரி எண்)</label>
-                <input type="text" class="form-control" name="slip_no" id="txnSlipNo" placeholder="e.g. Weighbridge Slip #4892 &bull; TN-28-AB-1234">
+                <label class="form-label small text-muted mb-1">Weighbridge Slip / Lorry #</label>
+                <input type="text" class="form-control form-control-sm" name="slip_no" id="txnSlipNo" placeholder="e.g. Slip #4892 • TN-28-AB-1234">
               </div>
             </div>
           </div>
@@ -291,8 +363,8 @@
           <!-- Total Amount Row -->
           <div class="mb-3">
             <div class="d-flex justify-content-between align-items-center mb-1">
-              <label class="form-label small fw-bold text-dark mb-0" data-i18n="amount">Total Amount (மொத்தத் தொகை ₹) <span class="text-danger">*</span></label>
-              <span class="small text-muted">Auto-calculated or enter flat lump sum</span>
+              <label class="form-label small fw-bold text-dark mb-0" data-i18n="amount">Total Net Amount (₹) <span class="text-danger">*</span></label>
+              <span class="small text-muted">Auto-calculated net payout (or enter manual flat sum)</span>
             </div>
             <div class="input-group input-group-lg">
               <span class="input-group-text bg-light fw-bold text-dark">₹</span>
@@ -303,10 +375,10 @@
           <!-- Notes / Description -->
           <div class="mb-0">
             <div class="d-flex justify-content-between align-items-center mb-1">
-              <label class="form-label small fw-bold text-dark mb-0">Notes / Detailed Description (குறிப்புகள் & கூடுதல் விவரங்கள்)</label>
-              <span class="small text-muted"><i class="bi bi-arrow-return-left me-1"></i>Pressing Enter adds a new line</span>
+              <label class="form-label small fw-bold text-dark mb-0">Notes & Settlement Terms</label>
+              <span class="small text-muted">Press Enter for new line</span>
             </div>
-            <textarea class="form-control" name="desc" id="txnDesc" rows="3" placeholder="Enter terms of payment, advance received, starch point, moisture deductions, plot/parcel location, vehicle driver contact, etc."></textarea>
+            <textarea class="form-control" name="desc" id="txnDesc" rows="3" placeholder="Enter terms of payment, advance received, starch score, vehicle driver contact, etc."></textarea>
           </div>
         </div>
 

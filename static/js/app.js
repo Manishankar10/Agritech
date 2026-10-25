@@ -896,32 +896,32 @@ async function openMilkModal(animalId) {
 // ----------------------------------------------------
 const TXN_CATEGORIES = {
   income: [
-    { value: "Crop Sale (பயிர் விற்பனை)", label: "Crop Sale (பயிர் விற்பனை - பொதுவானது)" },
-    { value: "Tapioca / Kuchchi Kilangu (மரவள்ளிக் கிழங்கு / குச்சிக் கிழங்கு)", label: "Tapioca / Kuchchi Kilangu (மரவள்ளிக் கிழங்கு)" },
-    { value: "Paddy Harvest Sale (நெல் அறுவடை விற்பனை)", label: "Paddy Harvest Sale (நெல் அறுவடை விற்பனை)" },
-    { value: "Coconut & Copra Sale (தேங்காய் & கொப்பரை விற்பனை)", label: "Coconut & Copra Sale (தேங்காய் & கொப்பரை விற்பனை)" },
-    { value: "Sugarcane Mill Supply (கரும்பு ஆலை சப்ளை)", label: "Sugarcane Mill Supply (கரும்பு ஆலை சப்ளை)" },
-    { value: "Turmeric Harvest Sale (மஞ்சள் விளைச்சல் விற்பனை)", label: "Turmeric Harvest Sale (மஞ்சள் விளைச்சல் விற்பனை)" },
-    { value: "Banana Harvest Sale (வாழைத் தார் விற்பனை)", label: "Banana Harvest Sale (வாழைத் தார் விற்பனை)" },
-    { value: "Vegetables / Onion Sale (காய்கறி / வெங்காயம் விற்பனை)", label: "Vegetables / Onion Sale (காய்கறி / வெங்காயம் விற்பனை)" },
-    { value: "Milk Sale (பால் விற்பனை)", label: "Milk Sale (பால் விற்பனை)" },
-    { value: "Livestock Sale (கால்நடை / ஆடு மாடு விற்பனை)", label: "Livestock Sale (கால்நடை / ஆடு மாடு விற்பனை)" },
-    { value: "Govt Subsidy / DBT (அரசு மானியம்)", label: "Govt Subsidy / DBT (அரசு மானியம்)" },
-    { value: "Other Farm Income (இதர விவசாய வரவு)", label: "Other Farm Income (இதர விவசாய வரவு)" }
+    { value: "Crop Sale (பயிர் விற்பனை)", label: "Crop Sale - General" },
+    { value: "Tapioca / Kuchchi Kilangu (மரவள்ளிக் கிழங்கு / குச்சிக் கிழங்கு)", label: "Tapioca / Kuchchi Kilangu" },
+    { value: "Paddy Harvest Sale (நெல் அறுவடை விற்பனை)", label: "Paddy Harvest" },
+    { value: "Coconut & Copra Sale (தேங்காய் & கொப்பரை விற்பனை)", label: "Coconut & Copra" },
+    { value: "Sugarcane Mill Supply (கரும்பு ஆலை சப்ளை)", label: "Sugarcane Mill Supply" },
+    { value: "Turmeric Harvest Sale (மஞ்சள் விளைச்சல் விற்பனை)", label: "Turmeric Harvest" },
+    { value: "Banana Harvest Sale (வாழைத் தார் விற்பனை)", label: "Banana Harvest" },
+    { value: "Vegetables / Onion Sale (காய்கறி / வெங்காயம் விற்பனை)", label: "Vegetables & Onion" },
+    { value: "Milk Sale (பால் விற்பனை)", label: "Milk Sale (Dairy)" },
+    { value: "Livestock Sale (கால்நடை / ஆடு மாடு விற்பனை)", label: "Livestock Sale" },
+    { value: "Govt Subsidy / DBT (அரசு மானியம்)", label: "Govt Subsidy / DBT" },
+    { value: "Other Farm Income (இதர விவசாய வரவு)", label: "Other Farm Income" }
   ],
   expense: [
-    { value: "Fertilizer & Manure (உரம் & எரு)", label: "Fertilizer & Manure (உரம் & எரு)" },
-    { value: "Labor & Coolie (கூலி & கூலியாட்கள்)", label: "Labor & Coolie (கூலி & கூலியாட்கள்)" },
-    { value: "Seeds & Saplings (விதை & நாற்று)", label: "Seeds & Saplings (விதை & நாற்று)" },
-    { value: "Tractor & Machinery Rental (டிராக்டர் / இயந்திர வாடகை)", label: "Tractor & Machinery Rental (டிராக்டர் / இயந்திர வாடகை)" },
-    { value: "Diesel & Fuel (டீசல் & எரிபொருள்)", label: "Diesel & Fuel (டீசல் & எரிபொருள்)" },
-    { value: "Pesticides & Crop Protection (பூச்சிக்கொல்லி & மருந்து)", label: "Pesticides & Crop Protection (பூச்சிக்கொல்லி & மருந்து)" },
-    { value: "Electricity & Irrigation (மின்சாரம் & பாசனம்)", label: "Electricity & Irrigation (மின்சாரம் & பாசனம்)" },
-    { value: "Cattle Feed & Fodder (தீவனம் & புல்)", label: "Cattle Feed & Fodder (தீவனம் & புல்)" },
-    { value: "Veterinary & Medicine (கால்நடை மருத்துவம்)", label: "Veterinary & Medicine (கால்நடை மருத்துவம்)" },
-    { value: "Transport & Freight (சரக்கு வண்டி வாடகை)", label: "Transport & Freight (சரக்கு வண்டி வாடகை)" },
-    { value: "Equipment Maintenance (கருவிகள் பழுதுபார்ப்பு)", label: "Equipment Maintenance (கருவிகள் பழுதுபார்ப்பு)" },
-    { value: "Other Farm Expense (இதர விவசாய செலவு)", label: "Other Farm Expense (இதர விவசாய செலவு)" }
+    { value: "Fertilizer & Manure (உரம் & எரு)", label: "Fertilizer & Manure" },
+    { value: "Labor & Coolie (கூலி & கூலியாட்கள்)", label: "Labor & Wages" },
+    { value: "Seeds & Saplings (விதை & நாற்று)", label: "Seeds & Saplings" },
+    { value: "Tractor & Machinery Rental (டிராக்டர் / இயந்திர வாடகை)", label: "Machinery & Tractor Rental" },
+    { value: "Diesel & Fuel (டீசல் & எரிபொருள்)", label: "Diesel & Fuel" },
+    { value: "Pesticides & Crop Protection (பூச்சிக்கொல்லி & மருந்து)", label: "Pesticides & Protection" },
+    { value: "Electricity & Irrigation (மின்சாரம் & பாசனம்)", label: "Electricity & Irrigation" },
+    { value: "Cattle Feed & Fodder (தீவனம் & புல்)", label: "Cattle Feed & Fodder" },
+    { value: "Veterinary & Medicine (கால்நடை மருத்துவம்)", label: "Veterinary & Health" },
+    { value: "Transport & Freight (சரக்கு வண்டி வாடகை)", label: "Transport & Freight" },
+    { value: "Equipment Maintenance (கருவிகள் பழுதுபார்ப்பு)", label: "Maintenance & Repairs" },
+    { value: "Other Farm Expense (இதர விவசாய செலவு)", label: "Other Farm Expense" }
   ]
 };
 
@@ -936,13 +936,12 @@ function onTxnTypeChange(type) {
     }
   }
 
-  // Update produce card title
   const produceTitle = document.querySelector("#cropTradeSection .small.fw-bold.text-dark");
   if (produceTitle) {
     if (type === "expense") {
-      produceTitle.innerHTML = `<i class="bi bi-box-seam text-danger me-1"></i> Agricultural Input / Quantity Details (உள்ளீடு & அளவு விவரம்)`;
+      produceTitle.innerHTML = `<i class="bi bi-box-seam text-danger me-1"></i> Input & Quantity Details`;
     } else {
-      produceTitle.innerHTML = `<i class="bi bi-basket-fill text-success me-1"></i> Produce & Quantity Details (விளைபொருள் விவரம் & எடை)`;
+      produceTitle.innerHTML = `<i class="bi bi-basket2-fill text-success me-1"></i> Produce & Quantity Details`;
     }
   }
 
@@ -957,10 +956,10 @@ function onTxnCategorySelectChange() {
 
   const val = (catSelect.value || "").toLowerCase();
   if (val.includes("tapioca") || val.includes("kuchchi")) {
-    commInput.value = "Kuchchi Kilangu / Tapioca (மரவள்ளிக் கிழங்கு / குச்சிக் கிழங்கு)";
+    commInput.value = "Tapioca / Kuchchi Kilangu (மரவள்ளி)";
     if (unitSelect) unitSelect.value = "Tons";
   } else if (val.includes("paddy")) {
-    commInput.value = "Paddy / Rice (நெல் / பொன்னி / குண்டு நெல்)";
+    commInput.value = "Paddy / Rice (நெல்)";
     if (unitSelect) unitSelect.value = "Bags (75kg)";
   } else if (val.includes("coconut") || val.includes("copra")) {
     commInput.value = "De-husked Coconut (மட்டை உரித்த தேங்காய்)";
@@ -985,40 +984,112 @@ function calculateTxnTotal() {
   const unitSelect = document.getElementById("txnUnit");
   const rateLabel = document.getElementById("txnRateLabel");
   const amtInput = document.getElementById("txnAmount");
-  const previewBadge = document.getElementById("txnCalcPreview");
+  const previewBox = document.getElementById("txnCalcPreview");
+  const netQtyInput = document.getElementById("txnNetQuantity");
+  const netUnitLabel = document.getElementById("txnNetUnitLabel");
+
+  const dedPerTonInput = document.getElementById("txnDeductionPerTon");
+  const dedFlatInput = document.getElementById("txnDeductionFlat");
+  const harvestInput = document.getElementById("txnHarvestCharges");
+  const transportInput = document.getElementById("txnTransportCharges");
+  const otherChargesInput = document.getElementById("txnOtherCharges");
 
   if (!qtyInput || !rateInput || !unitSelect) return;
 
   const unit = unitSelect.value || "Unit";
-  let unitName = unit;
-  if (unit === "Tons") unitName = "Ton (₹ / டன் விலை)";
-  else if (unit === "Quintals") unitName = "Quintal (₹ / குவிண்டால் விலை)";
-  else if (unit === "Bags (75kg)") unitName = "75kg Bag (₹ / மூட்டை விலை)";
-  else if (unit === "Bags (50kg)") unitName = "50kg Bag (₹ / மூட்டை விலை)";
-  else if (unit === "Kg") unitName = "Kg (₹ / கிலோ விலை)";
-  else if (unit === "Pieces") unitName = "Piece / Coconut (₹ / காய் எண்ணிக்கை விலை)";
-  else if (unit === "Liters") unitName = "Liter (₹ / லிட்டர் விலை)";
-  else if (unit === "Bunches") unitName = "Bunch (₹ / தார் விலை)";
-
+  const unitDisplay = unit.replace(/\s*\(.*\)/, '').trim();
   if (rateLabel) {
-    rateLabel.innerText = `Rate / Price per ${unitName}`;
+    rateLabel.innerText = `Rate / Price per ${unitDisplay.replace(/s$/, '')} (₹)`;
+  }
+  if (netUnitLabel) {
+    netUnitLabel.innerText = unitDisplay;
   }
 
-  const qty = parseFloat(qtyInput.value);
+  const grossQty = parseFloat(qtyInput.value);
   const rate = parseFloat(rateInput.value);
 
-  if (!isNaN(qty) && qty > 0 && !isNaN(rate) && rate > 0) {
-    const total = Math.round((qty * rate) * 100) / 100;
-    if (amtInput) amtInput.value = total.toFixed(2);
+  const dedPerTon = parseFloat(dedPerTonInput ? dedPerTonInput.value : 0) || 0;
+  const dedFlatKg = parseFloat(dedFlatInput ? dedFlatInput.value : 0) || 0;
+  const harvestCharge = parseFloat(harvestInput ? harvestInput.value : 0) || 0;
+  const transportCharge = parseFloat(transportInput ? transportInput.value : 0) || 0;
+  const otherCharge = parseFloat(otherChargesInput ? otherChargesInput.value : 0) || 0;
+  const totalCharges = harvestCharge + transportCharge + otherCharge;
 
-    if (previewBadge) {
-      previewBadge.className = "badge bg-success-subtle text-success border border-success-subtle p-2 w-100 text-start font-monospace small";
-      previewBadge.innerHTML = `<i class="bi bi-check-circle-fill text-success me-1"></i> ${qty} ${unit} &times; ₹${rate.toLocaleString("en-IN")} = <strong>₹${total.toLocaleString("en-IN")}</strong>`;
+  if (!isNaN(grossQty) && grossQty > 0) {
+    let totalDeductKg = 0;
+    if (unitDisplay.toLowerCase().includes("ton")) {
+      totalDeductKg = (grossQty * dedPerTon) + dedFlatKg;
+    } else if (unitDisplay.toLowerCase().includes("quintal")) {
+      totalDeductKg = (grossQty * (dedPerTon / 10.0)) + dedFlatKg;
+    } else {
+      totalDeductKg = dedFlatKg;
+    }
+
+    let deductInUnit = 0;
+    if (unitDisplay.toLowerCase().includes("ton")) {
+      deductInUnit = totalDeductKg / 1000.0;
+    } else if (unitDisplay.toLowerCase().includes("quintal")) {
+      deductInUnit = totalDeductKg / 100.0;
+    } else if (unitDisplay.toLowerCase() === "kg") {
+      deductInUnit = totalDeductKg;
+    }
+
+    let netQty = Math.max(0, grossQty - deductInUnit);
+    netQty = Math.round(netQty * 1000) / 1000;
+
+    if (netQtyInput) {
+      netQtyInput.value = netQty.toFixed(3);
+    }
+
+    if (!isNaN(rate) && rate > 0) {
+      const grossProduceVal = Math.round((netQty * rate) * 100) / 100;
+      const netPayout = Math.max(0, Math.round((grossProduceVal - totalCharges) * 100) / 100);
+
+      if (amtInput) {
+        amtInput.value = netPayout.toFixed(2);
+      }
+
+      if (previewBox) {
+        previewBox.className = "border rounded p-2 mb-2 bg-success-subtle border-success-subtle small font-monospace";
+        
+        let deductionText = totalDeductKg > 0
+          ? `<span class="text-danger fw-bold">-${totalDeductKg.toFixed(1)} kg (-${deductInUnit.toFixed(3)} ${unitDisplay})</span>`
+          : `<span class="text-muted">0 kg</span>`;
+
+        let chargesText = totalCharges > 0
+          ? `<span class="text-danger fw-bold">-₹${totalCharges.toLocaleString("en-IN")}</span>`
+          : `<span class="text-muted">₹0</span>`;
+
+        previewBox.innerHTML = `
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-1">
+            <div>
+              <span class="text-muted">Gross:</span> <strong>${grossQty} ${unitDisplay}</strong>
+              <span class="text-muted mx-1">&bull;</span>
+              <span class="text-muted">Sand/Tare:</span> ${deductionText}
+              <span class="text-muted mx-1">&bull;</span>
+              <span class="text-muted">Net Wt:</span> <span class="text-success fw-bold">${netQty} ${unitDisplay}</span>
+            </div>
+            <div class="text-md-end">
+              <span class="text-muted">Produce:</span> <strong>₹${grossProduceVal.toLocaleString("en-IN")}</strong>
+              <span class="text-muted mx-1">&bull;</span>
+              <span class="text-muted">Charges:</span> ${chargesText}
+              <span class="text-muted mx-1">&bull;</span>
+              <span class="text-success fw-bold">Net Payout: ₹${netPayout.toLocaleString("en-IN")}</span>
+            </div>
+          </div>
+        `;
+      }
+    } else {
+      if (previewBox) {
+        previewBox.className = "border rounded p-2 mb-2 bg-white text-muted small font-monospace";
+        previewBox.innerHTML = `<i class="bi bi-calculator me-1 text-primary"></i> Gross ${grossQty} ${unitDisplay} (Net ${netQty} ${unitDisplay}). Enter Rate to calculate total.`;
+      }
     }
   } else {
-    if (previewBadge) {
-      previewBadge.className = "badge bg-white text-dark border p-2 w-100 text-start font-monospace small";
-      previewBadge.innerHTML = `<i class="bi bi-calculator me-1 text-primary"></i> Enter Quantity & Rate to auto-calculate total`;
+    if (netQtyInput) netQtyInput.value = "";
+    if (previewBox) {
+      previewBox.className = "border rounded p-2 mb-2 bg-white text-muted small font-monospace";
+      previewBox.innerHTML = `<i class="bi bi-calculator me-1 text-primary"></i> Enter Quantity & Rate to auto-calculate settlement`;
     }
   }
 }
@@ -1067,13 +1138,26 @@ async function loadFinancials() {
       let produceDetails = "";
       if (t.quantity && t.rate_per_unit) {
         const u = t.unit || "Units";
-        produceDetails += `<div class="badge bg-light text-dark border mb-1 tabular-nums"><i class="bi bi-calculator me-1 text-primary"></i><strong>${t.quantity} ${u}</strong> &times; ₹${parseFloat(t.rate_per_unit).toLocaleString("en-IN")}/${u.replace(/s\b/, '')}</div>`;
+        let weightStr = `<strong>${t.quantity} ${u}</strong>`;
+        if (t.deduction_per_ton_kg) {
+          weightStr += ` <span class="text-danger small font-monospace">(-${t.deduction_per_ton_kg}kg/T sand)</span>`;
+        }
+        if (t.net_quantity && t.net_quantity !== t.quantity) {
+          weightStr += ` &rarr; <span class="text-success fw-bold font-monospace">Net ${t.net_quantity} ${u}</span>`;
+        }
+        produceDetails += `<div class="badge bg-light text-dark border mb-1 tabular-nums"><i class="bi bi-calculator me-1 text-primary"></i>${weightStr} &times; ₹${parseFloat(t.rate_per_unit).toLocaleString("en-IN")}/${u.replace(/\s*\(.*\)/, '').replace(/s\b/, '')}</div>`;
+      }
+      if (t.harvest_charges || t.transport_charges || t.other_charges || (t.total_expenses && parseFloat(t.total_expenses) > 0)) {
+        const totalExp = t.total_expenses || ((parseFloat(t.harvest_charges||0) + parseFloat(t.transport_charges||0) + parseFloat(t.other_charges||0)));
+        if (totalExp > 0) {
+          produceDetails += `<div class="small text-danger mb-1 font-monospace"><i class="bi bi-dash-circle me-1"></i>Charges Paid: -₹${parseFloat(totalExp).toLocaleString("en-IN")}</div>`;
+        }
       }
       if (t.buyer) {
-        produceDetails += `<div class="small text-muted"><i class="bi bi-building me-1 text-secondary"></i><strong>Party/Mill:</strong> ${t.buyer}</div>`;
+        produceDetails += `<div class="small text-muted"><i class="bi bi-building me-1 text-secondary"></i><strong>Party:</strong> ${t.buyer}</div>`;
       }
       if (t.slip_no) {
-        produceDetails += `<div class="small text-muted"><i class="bi bi-receipt me-1 text-secondary"></i><strong>Slip/Ref:</strong> ${t.slip_no}</div>`;
+        produceDetails += `<div class="small text-muted"><i class="bi bi-receipt me-1 text-secondary"></i><strong>Slip:</strong> ${t.slip_no}</div>`;
       }
       if (t.desc) {
         produceDetails += `<div class="small text-dark mt-1 p-2 bg-light border-start border-3 border-secondary rounded" style="white-space: pre-wrap; font-family: inherit;">${t.desc}</div>`;
@@ -1166,6 +1250,11 @@ async function editTxn(txnId) {
   const qtyInp = document.getElementById("txnQuantity");
   const untSel = document.getElementById("txnUnit");
   const rtInp = document.getElementById("txnRate");
+  const dedPerTonInp = document.getElementById("txnDeductionPerTon");
+  const dedFlatInp = document.getElementById("txnDeductionFlat");
+  const hrvInp = document.getElementById("txnHarvestCharges");
+  const trnInp = document.getElementById("txnTransportCharges");
+  const othInp = document.getElementById("txnOtherCharges");
   const byrInp = document.getElementById("txnBuyer") || form.querySelector("input[name='buyer']");
   const slpInp = document.getElementById("txnSlipNo") || form.querySelector("input[name='slip_no']");
   const amtInp = document.getElementById("txnAmount");
@@ -1176,6 +1265,11 @@ async function editTxn(txnId) {
   if (qtyInp) qtyInp.value = txn.quantity || "";
   if (untSel) untSel.value = txn.unit || "Tons";
   if (rtInp) rtInp.value = txn.rate_per_unit || "";
+  if (dedPerTonInp) dedPerTonInp.value = txn.deduction_per_ton_kg || "";
+  if (dedFlatInp) dedFlatInp.value = txn.deduction_flat_kg || "";
+  if (hrvInp) hrvInp.value = txn.harvest_charges || "";
+  if (trnInp) trnInp.value = txn.transport_charges || "";
+  if (othInp) othInp.value = txn.other_charges || "";
   if (byrInp) byrInp.value = txn.buyer || "";
   if (slpInp) slpInp.value = txn.slip_no || "";
   if (amtInp) amtInp.value = txn.amount || "";
@@ -1184,7 +1278,7 @@ async function editTxn(txnId) {
   if (typeof calculateTxnTotal === "function") calculateTxnTotal();
 
   const titleEl = document.getElementById("txnModalTitle");
-  if (titleEl) titleEl.innerText = "Edit Financial Transaction (பரிவர்த்தனையை திருத்து)";
+  if (titleEl) titleEl.innerText = "Edit Transaction";
   const submitBtn = document.getElementById("txnSubmitBtn") || form.querySelector("button[type='submit']");
   if (submitBtn) submitBtn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Update Transaction';
 
@@ -1207,15 +1301,18 @@ function resetTxnModal() {
   }
   const calcPreview = document.getElementById("txnCalcPreview");
   if (calcPreview) {
-    calcPreview.className = "badge bg-white text-dark border p-2 w-100 text-start font-monospace small";
-    calcPreview.innerHTML = '<i class="bi bi-calculator me-1 text-primary"></i> Enter Quantity & Rate to auto-calculate total';
+    calcPreview.className = "border rounded p-2 mb-2 bg-white text-muted small font-monospace";
+    calcPreview.innerHTML = '<i class="bi bi-calculator me-1 text-primary"></i> Enter Quantity & Rate to auto-calculate settlement';
   }
   const today = new Date().toISOString().split("T")[0];
   const dtInp = document.getElementById("txnDate");
   if (dtInp) dtInp.value = today;
 
+  const netQtyInp = document.getElementById("txnNetQuantity");
+  if (netQtyInp) netQtyInp.value = "";
+
   const titleEl = document.getElementById("txnModalTitle");
-  if (titleEl) titleEl.innerText = "Record Financial Transaction";
+  if (titleEl) titleEl.innerText = "Record Transaction";
   const submitBtn = document.getElementById("txnSubmitBtn") || form.querySelector("button[type='submit']");
   if (submitBtn) submitBtn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Save Transaction';
 }

@@ -562,6 +562,20 @@ def api_modify_milk(log_id):
             return jsonify(existing)
         return jsonify({"error": "Milk log not found or unauthorized"}), 404
 
+def _clean_financial_data(data):
+    float_fields = [
+        "amount", "quantity", "rate_per_unit", "deduction_per_ton_kg",
+        "deduction_flat_kg", "net_quantity", "harvest_charges",
+        "transport_charges", "other_charges", "total_expenses", "gross_amount"
+    ]
+    for field in float_fields:
+        if field in data and data[field] not in ("", None):
+            try:
+                data[field] = float(data[field])
+            except (ValueError, TypeError):
+                if field == "amount":
+                    data[field] = 0.0
+
 # --- User-Scoped Financials API ---
 @app.route("/api/financials", methods=["GET", "POST"])
 @login_required
@@ -571,21 +585,7 @@ def api_financials():
 
     if request.method == "POST":
         data = request.json or request.form.to_dict()
-        if "amount" in data and data["amount"] not in ("", None):
-            try:
-                data["amount"] = float(data["amount"])
-            except (ValueError, TypeError):
-                data["amount"] = 0.0
-        if "quantity" in data and data["quantity"] not in ("", None):
-            try:
-                data["quantity"] = float(data["quantity"])
-            except (ValueError, TypeError):
-                pass
-        if "rate_per_unit" in data and data["rate_per_unit"] not in ("", None):
-            try:
-                data["rate_per_unit"] = float(data["rate_per_unit"])
-            except (ValueError, TypeError):
-                pass
+        _clean_financial_data(data)
         item = db_store.save_user_item("financials", data, uname)
         return jsonify(item), 201
 
@@ -607,21 +607,7 @@ def api_modify_financial(item_id):
         if existing and existing.get("user_id", "farmer") == uname:
             existing.update(data)
             existing["id"] = item_id
-            if "amount" in existing and existing["amount"] not in ("", None):
-                try:
-                    existing["amount"] = float(existing["amount"])
-                except (ValueError, TypeError):
-                    existing["amount"] = 0.0
-            if "quantity" in existing and existing["quantity"] not in ("", None):
-                try:
-                    existing["quantity"] = float(existing["quantity"])
-                except (ValueError, TypeError):
-                    pass
-            if "rate_per_unit" in existing and existing["rate_per_unit"] not in ("", None):
-                try:
-                    existing["rate_per_unit"] = float(existing["rate_per_unit"])
-                except (ValueError, TypeError):
-                    pass
+            _clean_financial_data(existing)
             db_store.save_user_item("financials", existing, uname)
             return jsonify(existing)
         return jsonify({"error": "Transaction not found or unauthorized"}), 404

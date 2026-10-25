@@ -480,6 +480,67 @@ class TestUzhavanDesk(unittest.TestCase):
         self.assertEqual(updated_fin["buyer"], "Salem Modern Sago Mill")
         self.assertEqual(updated_fin["slip_no"], "WB-9988")
 
+    def test_kuchchi_kilangu_sand_deduction_and_charges(self):
+        """Verifies recording 15.37 tons with 50kg/ton sand deduction, freight & harvest charges."""
+        self.client.post("/login", data={"action": "demo"}, follow_redirects=True)
+
+        gross_qty = 15.370
+        rate = 11600.0
+        ded_per_ton = 50.0  # kg/ton
+        ded_tons = (gross_qty * ded_per_ton) / 1000.0  # 0.7685 Tons
+        net_qty = round(gross_qty - ded_tons, 3)  # 14.6015 -> 14.602 Tons
+        gross_produce_val = round(net_qty * rate, 2)  # 169383.20
+
+        harvest_charges = 8000.0
+        transport_charges = 5000.0
+        other_charges = 500.0
+        total_charges = harvest_charges + transport_charges + other_charges  # 13500.0
+        net_amount = round(gross_produce_val - total_charges, 2)  # 155883.20
+
+        trade_payload = {
+            "type": "income",
+            "category": "Tapioca / Kuchchi Kilangu (மரவள்ளிக் கிழங்கு / குச்சிக் கிழங்கு)",
+            "commodity": "Tapioca / Kuchchi Kilangu (மரவள்ளி)",
+            "quantity": gross_qty,
+            "unit": "Tons",
+            "rate_per_unit": rate,
+            "deduction_per_ton_kg": ded_per_ton,
+            "deduction_flat_kg": 0.0,
+            "net_quantity": net_qty,
+            "harvest_charges": harvest_charges,
+            "transport_charges": transport_charges,
+            "other_charges": other_charges,
+            "total_expenses": total_charges,
+            "amount": net_amount,
+            "buyer": "Salem Sago Factory / Trader Murugan",
+            "slip_no": "Weighbridge Slip #4892",
+            "date": date.today().isoformat(),
+            "desc": "Sand deduction 50kg/T applied at weighbridge. Labour and lorry transport paid directly."
+        }
+
+        # Create
+        res = self.client.post("/api/financials", json=trade_payload)
+        self.assertEqual(res.status_code, 201)
+        created = json.loads(res.data)
+        self.assertEqual(created["quantity"], 15.370)
+        self.assertEqual(created["deduction_per_ton_kg"], 50.0)
+        self.assertEqual(created["net_quantity"], net_qty)
+        self.assertEqual(created["amount"], net_amount)
+        self.assertEqual(created["harvest_charges"], 8000.0)
+        self.assertEqual(created["transport_charges"], 5000.0)
+
+        # Update via PUT
+        trade_payload["harvest_charges"] = 7500.0
+        trade_payload["total_expenses"] = 13000.0
+        trade_payload["amount"] = round(gross_produce_val - 13000.0, 2)
+
+        put_res = self.client.put(f"/api/financials/{created['id']}", json=trade_payload)
+        self.assertEqual(put_res.status_code, 200)
+        updated = json.loads(put_res.data)
+        self.assertEqual(updated["harvest_charges"], 7500.0)
+        self.assertEqual(updated["total_expenses"], 13000.0)
+        self.assertEqual(updated["amount"], round(gross_produce_val - 13000.0, 2))
+
 if __name__ == "__main__":
     unittest.main()
 
