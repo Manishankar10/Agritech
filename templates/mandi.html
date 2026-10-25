@@ -48,11 +48,12 @@
         </div>
 
         <div class="col-md-3 mt-md-4">
-          <div class="d-flex gap-1 overflow-auto">
+          <div class="d-flex gap-1 overflow-auto pb-1">
             <button class="btn btn-sm btn-light border" onclick="quickFilter('')">All</button>
-            <button class="btn btn-sm btn-light border" onclick="quickFilter('Paddy')">Paddy (நெல்)</button>
-            <button class="btn btn-sm btn-light border" onclick="quickFilter('Turmeric')">Turmeric (மஞ்சள்)</button>
-            <button class="btn btn-sm btn-light border" onclick="quickFilter('Banana')">Banana (வாழை)</button>
+            <button class="btn btn-sm btn-light border text-nowrap" onclick="quickFilter('Coconut')">🥥 Coconut & Copra (தென்னை)</button>
+            <button class="btn btn-sm btn-light border text-nowrap" onclick="quickFilter('Paddy')">Paddy (நெல்)</button>
+            <button class="btn btn-sm btn-light border text-nowrap" onclick="quickFilter('Turmeric')">Turmeric (மஞ்சள்)</button>
+            <button class="btn btn-sm btn-light border text-nowrap" onclick="quickFilter('Banana')">Banana (வாழை)</button>
           </div>
         </div>
       </div>
@@ -71,6 +72,7 @@
               <th data-i18n="col_commodity">Commodity & Variety</th>
               <th data-i18n="col_market">Market / APMC</th>
               <th data-i18n="col_district">District</th>
+              <th class="text-success"><i class="bi bi-tag-fill me-1"></i>₹ / Kg Breakdown</th>
               <th data-i18n="col_min_price">Min Price</th>
               <th data-i18n="col_max_price">Max Price</th>
               <th data-i18n="col_modal_price">Modal Price</th>
@@ -80,7 +82,7 @@
           </thead>
           <tbody id="mandiTableBody">
             <tr>
-              <td colspan="8" class="text-center py-4">
+              <td colspan="9" class="text-center py-4">
                 <div class="spinner-border text-success" role="status"></div> Loading daily mandi prices for your region...
               </td>
             </tr>

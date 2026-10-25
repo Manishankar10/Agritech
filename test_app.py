@@ -123,5 +123,61 @@ class TestUzhavanDesk(unittest.TestCase):
         self.assertIn("forecast", data)
         self.assertTrue(len(data["forecast"]) > 0)
 
+    def test_schemes_directory_and_detail(self):
+        """Verifies government schemes directory and detailed scheme insights."""
+        # Demo login
+        self.client.post("/login", data={"action": "demo"}, follow_redirects=True)
+        
+        # Test all schemes endpoint
+        resp = self.client.get("/api/schemes")
+        self.assertEqual(resp.status_code, 200)
+        schemes = json.loads(resp.data)
+        self.assertTrue(len(schemes) >= 5)
+
+        scheme_ids = [s["id"] for s in schemes]
+        self.assertIn("pmksy_micro_irrigation", scheme_ids)
+        self.assertIn("free_agri_electricity", scheme_ids)
+        self.assertIn("cattle_shed_fodder_scheme", scheme_ids)
+
+        # Test single scheme detail
+        detail_resp = self.client.get("/api/schemes/pmksy_micro_irrigation")
+        self.assertEqual(detail_resp.status_code, 200)
+        detail = json.loads(detail_resp.data)
+        self.assertEqual(detail["id"], "pmksy_micro_irrigation")
+        self.assertIn("eligibility", detail)
+        self.assertIn("documents_required", detail)
+        self.assertIn("how_to_apply", detail)
+        self.assertTrue(len(detail["how_to_apply"]) >= 4)
+        self.assertTrue(detail["official_portal"].startswith("http"))
+
+    def test_weather_gps_locate(self):
+        """Verifies GPS coordinate mapping to nearest Tamil Nadu district."""
+        self.client.post("/login", data={"action": "demo"}, follow_redirects=True)
+        # Thanjavur coords: 10.7870, 79.1378
+        resp = self.client.get("/api/weather/locate?lat=10.7870&lon=79.1378")
+        self.assertEqual(resp.status_code, 200)
+        data = json.loads(resp.data)
+        self.assertEqual(data["district"], "Thanjavur")
+        self.assertTrue(data.get("is_live_gps"))
+        self.assertIn("forecast", data)
+
+    def test_coconut_mandi_rates_and_per_kg_breakdown(self):
+        """Verifies comprehensive Coconut derivatives and ₹ / kg rate calculation."""
+        self.client.post("/login", data={"action": "demo"}, follow_redirects=True)
+        resp = self.client.get("/api/mandi/prices?district=all_tn&search=Coconut")
+        self.assertEqual(resp.status_code, 200)
+        prices = json.loads(resp.data)
+        self.assertTrue(len(prices) >= 3)
+
+        # Verify coconut varieties are present
+        commodities = [p["commodity"] for p in prices]
+        self.assertTrue(any("Milling Copra" in c for c in commodities))
+        self.assertTrue(any("Mature Coconut" in c for c in commodities))
+
+        # Verify rate_per_kg_str is populated
+        for p in prices:
+            self.assertIn("rate_per_kg_str", p)
+            self.assertTrue(len(p["rate_per_kg_str"]) > 0)
+
 if __name__ == "__main__":
     unittest.main()

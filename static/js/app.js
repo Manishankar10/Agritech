@@ -120,14 +120,14 @@ async function loadMandiPrices() {
   const district = document.getElementById("mandiDistrictSelect")?.value || "";
   const search = document.getElementById("mandiSearchInput")?.value || "";
 
-  tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4"><div class="spinner-border text-success" role="status"></div></td></tr>`;
+  tableBody.innerHTML = `<tr><td colspan="9" class="text-center py-4"><div class="spinner-border text-success" role="status"></div></td></tr>`;
 
   try {
     const res = await fetch(`/api/mandi/prices?district=${encodeURIComponent(district)}&search=${encodeURIComponent(search)}`);
     const prices = await res.json();
 
     if (!prices || prices.length === 0) {
-      tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">No commodity records found for the selected filter.</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">No commodity records found for the selected filter.</td></tr>`;
       return;
     }
 
@@ -148,16 +148,19 @@ async function loadMandiPrices() {
           <td>
             <span class="badge ${p.is_local ? 'bg-success text-white' : 'bg-light text-dark border'}">${p.district}</span>
           </td>
-          <td>₹${p.min_price.toLocaleString("en-IN")}</td>
-          <td>₹${p.max_price.toLocaleString("en-IN")}</td>
-          <td><span class="price-pill">₹${p.modal_price.toLocaleString("en-IN")}</span> <span class="small text-muted">${p.unit}</span></td>
           <td>
-            <span class="${changeClass} fw-bold">
+            <span class="badge bg-success-subtle text-success border font-monospace fw-bold px-2 py-1">${p.rate_per_kg_str || '-'}</span>
+          </td>
+          <td class="tabular-nums">₹${p.min_price.toLocaleString("en-IN")}</td>
+          <td class="tabular-nums">₹${p.max_price.toLocaleString("en-IN")}</td>
+          <td><span class="price-pill tabular-nums">₹${p.modal_price.toLocaleString("en-IN")}</span> <span class="small text-muted">${p.unit}</span></td>
+          <td>
+            <span class="${changeClass} fw-bold tabular-nums">
               ${changeSign}${p.price_change_pct}%
             </span>
           </td>
           <td>
-            <button class="btn btn-sm btn-outline-success" onclick="viewPriceTrend('${p.commodity}')">
+            <button class="btn btn-sm btn-outline-success" onclick="viewPriceTrend('${p.commodity}')" title="View 15-day trend">
               <i class="bi bi-graph-up"></i>
             </button>
           </td>

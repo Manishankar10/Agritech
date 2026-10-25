@@ -4,7 +4,7 @@ from datetime import datetime, date
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
 import db_store
 import seed_manager
-from services import mandi_service, weather_service, breeding_engine
+from services import mandi_service, weather_service, breeding_engine, schemes_service
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "uzhavan-farm-secret-key-2026-auth")
@@ -288,7 +288,13 @@ def api_mandi_prices():
         scope = "local"
 
     search = request.args.get("search", "")
-    prices = mandi_service.get_mandi_prices_for_user(user_district=district, search_term=search, scope=scope)
+    category = request.args.get("category", "")
+    prices = mandi_service.get_mandi_prices_for_user(
+        user_district=district, 
+        search_term=search, 
+        scope=scope, 
+        category=category if category else None
+    )
     return jsonify(prices)
 
 @app.route("/api/mandi/trend")
@@ -528,6 +534,33 @@ def api_weather():
         district = user.get("district", "Thanjavur")
     data = weather_service.get_weather_forecast(district)
     return jsonify(data)
+
+@app.route("/api/weather/locate")
+@login_required
+def api_weather_locate():
+    lat = request.args.get("lat")
+    lon = request.args.get("lon")
+    if not lat or not lon:
+        return jsonify({"error": "Latitude and longitude required"}), 400
+    try:
+        data = weather_service.get_weather_by_coords(float(lat), float(lon))
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# --- Tamil Nadu Government Schemes & Subsidies API ---
+@app.route("/api/schemes")
+@login_required
+def api_schemes():
+    return jsonify(schemes_service.get_all_schemes())
+
+@app.route("/api/schemes/<scheme_id>")
+@login_required
+def api_scheme_detail(scheme_id):
+    scheme = schemes_service.get_scheme_by_id(scheme_id)
+    if not scheme:
+        return jsonify({"error": "Scheme not found"}), 404
+    return jsonify(scheme)
 
 # --- Vaccination Calendar API ---
 @app.route("/api/vaccinations")

@@ -1,3 +1,4 @@
+import math
 import requests
 from datetime import datetime
 
@@ -41,14 +42,44 @@ TN_DISTRICT_COORDINATES = {
 
 DEFAULT_DISTRICT = "Thanjavur"
 
-def get_weather_forecast(district_name="Thanjavur"):
-    """
-    Fetches real-time weather and 7-day forecast from Open-Meteo for the given TN district.
-    Completely free and requires no API key.
-    """
-    coords = TN_DISTRICT_COORDINATES.get(district_name) or TN_DISTRICT_COORDINATES[DEFAULT_DISTRICT]
-    lat, lon = coords["lat"], coords["lon"]
+def find_nearest_district(lat, lon):
+    """Calculates the closest Tamil Nadu district to the given GPS coordinates."""
+    try:
+        lat = float(lat)
+        lon = float(lon)
+    except Exception:
+        return DEFAULT_DISTRICT, 0.0
 
+    best_district = DEFAULT_DISTRICT
+    min_dist = float("inf")
+
+    for district, coords in TN_DISTRICT_COORDINATES.items():
+        # Euclidean approximation (fast & accurate for local TN boundary)
+        dlat = (coords["lat"] - lat) * 111.0
+        dlon = (coords["lon"] - lon) * 111.0 * math.cos(math.radians(lat))
+        dist_km = math.sqrt(dlat * dlat + dlon * dlon)
+        if dist_km < min_dist:
+            min_dist = dist_km
+            best_district = district
+
+    return best_district, round(min_dist, 1)
+
+def get_weather_forecast(district_name="Thanjavur"):
+    """Fetches real-time weather and 7-day forecast from Open-Meteo for the given TN district."""
+    coords = TN_DISTRICT_COORDINATES.get(district_name) or TN_DISTRICT_COORDINATES[DEFAULT_DISTRICT]
+    return _fetch_weather_from_open_meteo(coords["lat"], coords["lon"], district_name)
+
+def get_weather_by_coords(lat, lon):
+    """Fetches real-time weather for exact GPS coordinates and maps to the nearest district."""
+    nearest_dist, dist_km = find_nearest_district(lat, lon)
+    res = _fetch_weather_from_open_meteo(float(lat), float(lon), nearest_dist)
+    res["is_live_gps"] = True
+    res["gps_lat"] = round(float(lat), 4)
+    res["gps_lon"] = round(float(lon), 4)
+    res["distance_to_district_km"] = dist_km
+    return res
+
+def _fetch_weather_from_open_meteo(lat, lon, district_name):
     url = "https://api.open-meteo.com/v1/forecast"
     params = {
         "latitude": lat,
@@ -65,7 +96,6 @@ def get_weather_forecast(district_name="Thanjavur"):
             current = data.get("current", {})
             daily = data.get("daily", {})
 
-            # Format 7 days
             days_formatted = []
             dates = daily.get("time", [])
             max_temps = daily.get("temperature_2m_max", [])
@@ -111,7 +141,9 @@ def get_weather_forecast(district_name="Thanjavur"):
         print(f"Weather API exception: {e}")
 
     # Fallback offline realistic weather
-    return _get_fallback_weather(district_name)
+    fallback = _get_fallback_weather(district_name)
+    fallback["district"] = district_name
+    return fallback
 
 def _get_tamil_day(day_str):
     mapping = {
@@ -121,16 +153,11 @@ def _get_tamil_day(day_str):
     return mapping.get(day_str, day_str)
 
 def _get_weather_icon(code):
-    if code in [0, 1]:
-        return "sun"
-    elif code in [2, 3]:
-        return "cloud-sun"
-    elif code in [45, 48]:
-        return "smog"
-    elif code in [51, 53, 55, 61, 63, 65, 80, 81, 82]:
-        return "cloud-rain"
-    elif code in [95, 96, 99]:
-        return "cloud-lightning"
+    if code in [0, 1]: return "sun"
+    if code in [2, 3]: return "cloud-sun"
+    if code in [45, 48]: return "smog"
+    if code in [51, 53, 55, 61, 63, 65, 80, 81, 82]: return "cloud-rain"
+    if code in [95, 96, 99]: return "cloud-lightning"
     return "cloud"
 
 def _get_weather_condition(code):
@@ -153,36 +180,34 @@ def _get_weather_condition_ta(code):
 
 def _generate_agri_advisories(temp, hum, wind, forecast):
     advisories = []
-    
-    # Check max rain probability in next 48 hours
     rain_48h = max([d.get("rain_prob", 0) for d in forecast[:2]], default=0)
 
     if rain_48h >= 60:
         advisories.append({
             "type": "rain_alert",
             "level": "warning",
-            "title": "Rain Alert: Postpone Spraying & Urea Dressing",
+            "title": "Rain Alert: Postpone Spraying & Urea Top-Dressing",
             "title_ta": "மழை எச்சரிக்கை: பூச்சிக்கொல்லி & உரமிடலை தள்ளிப்போடவும்",
-            "advice": "High probability of rain (>60%) in next 48h. Avoid foliar spraying and top dressing. Ensure field drainage channels are cleared.",
+            "advice": "High probability of rain (>60%) in next 48 hours. Postpone foliar spraying and nitrogen top-dressing to prevent nutrient runoff. Clear field drainage channels.",
             "advice_ta": "அடுத்த 48 மணி நேரத்தில் மழை வாய்ப்பு அதிகம். இலைவழி தெளிப்பு மற்றும் மேலுரமிடுவதை தள்ளிவைக்கவும். வடிகால் வாய்க்கால்களை தூர்வாரவும்."
         })
     else:
         advisories.append({
             "type": "irrigation_advice",
             "level": "success",
-            "title": "Irrigation Window Favorable",
-            "title_ta": "பாசனம் செய்ய உகந்த சூழல்",
-            "advice": "Low rain probability. Suitable time for regular irrigation and field maintenance.",
-            "advice_ta": "மழை வாய்ப்பு குறைவு. வழக்கமான பாசனம் மற்றும் களை எடுக்கும் பணிகளை மேற்கொள்ளலாம்."
+            "title": "Favorable Window for Irrigation & Field Operations",
+            "title_ta": "பாசனம் மற்றும் உழவுப் பணிகளுக்கு உகந்த சூழல்",
+            "advice": "Low rain probability across the next 48 hours. Favorable time for regular drip/furrow irrigation, weeding, and intercultural field operations.",
+            "advice_ta": "மழை வாய்ப்பு குறைவு. வழக்கமான பாசனம், களை எடுப்பு மற்றும் இதர பண்ணை பராமரிப்பு பணிகளை மேற்கொள்ளலாம்."
         })
 
     if hum >= 75 and temp >= 28:
         advisories.append({
             "type": "pest_disease",
             "level": "info",
-            "title": "Pest & Disease Advisory: High Humidity",
+            "title": "Pest & Disease Advisory: High Relative Humidity",
             "title_ta": "பூச்சி மற்றும் நோய் கண்காணிப்பு: அதிக ஈரப்பதம்",
-            "advice": "High relative humidity promotes fungal blast in paddy and fruit rot in chillies. Inspect crops regularly for early symptoms.",
+            "advice": "High ambient humidity promotes fungal blast in paddy, leaf spot in groundnut, and fruit rot in chillies. Inspect crops regularly for early symptoms.",
             "advice_ta": "அதிக ஈரப்பதத்தால் நெல்லில் குலைநோய் மற்றும் மிளகாயில் அழுகல் நோய் வர வாய்ப்புள்ளது. பயிர்களை தொடர்ந்து கண்காணிக்கவும்."
         })
 
@@ -190,9 +215,9 @@ def _generate_agri_advisories(temp, hum, wind, forecast):
         advisories.append({
             "type": "wind_alert",
             "level": "warning",
-            "title": "High Wind Warning: Prop Banana & Sugarcane",
+            "title": "High Wind Warning: Prop Banana & Sugarcane Stalks",
             "title_ta": "காற்று எச்சரிக்கை: வாழை மற்றும் கரும்புக்கு முட்டுக் கொடுக்கவும்",
-            "advice": f"Wind speeds recorded up to {wind} km/h. Provide support stakes/props for tall banana varieties (Nendran, Poovan) to prevent lodging.",
+            "advice": f"Wind speeds recorded up to {wind} km/h. Provide support stakes/props for tall banana varieties (Nendran, Poovan) to prevent lodging and bunch loss.",
             "advice_ta": f"காற்றின் வேகம் {wind} கி.மீ/மணி வரை உள்ளது. குலை தள்ளிய வாழை மரங்களுக்கு முட்டுக் கொடுத்து காற்று சேதத்திலிருந்து பாதுகாக்கவும்."
         })
 

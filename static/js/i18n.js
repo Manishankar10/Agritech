@@ -105,6 +105,9 @@ const I18N = {
     advisory_title: "Weather Forecast & Agricultural Advisory",
     schemes_title: "Tamil Nadu Government Agricultural Schemes & Subsidies",
     helplines_title: "Emergency Agri & Veterinary Helplines",
+    use_current_location: "Use Current Location",
+    scheme_view_details: "View Details & How to Apply",
+    col_per_kg: "₹ / Kg Breakdown",
 
     // Common
     save_btn: "Save Record",
@@ -215,6 +218,9 @@ const I18N = {
     advisory_title: "வானிலை முன்னறிவிப்பு & வேளாண் வழிகாட்டல்கள்",
     schemes_title: "தமிழ்நாடு அரசு விவசாய மானியங்கள் & திட்டங்கள்",
     helplines_title: "அவசர விவசாய & கால்நடை உதவி எண்கள்",
+    use_current_location: "தற்போதைய இருப்பிடம்",
+    scheme_view_details: "முழு விவரங்கள் & விண்ணப்பிக்க",
+    col_per_kg: "கிலோ விலை (₹)",
 
     // Common
     save_btn: "சேமிக்க",
