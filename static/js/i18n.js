@@ -225,7 +225,7 @@ const I18N = {
   }
 };
 
-let currentLang = localStorage.getItem("uzhavan_lang") || "ta";
+let currentLang = localStorage.getItem("uzhavan_lang") || "en";
 
 function t(key) {
   if (I18N[currentLang] && I18N[currentLang][key]) {
@@ -242,23 +242,32 @@ function setLanguage(lang) {
   localStorage.setItem("uzhavan_lang", lang);
   applyTranslations();
 
-  // Also persist to backend settings
   fetch("/api/settings", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ language: lang })
   }).catch(() => {});
 
-  // Update toggle button text
   const btn = document.getElementById("langToggleBtn");
   if (btn) {
-    btn.innerHTML = lang === "ta" ? "🇬🇧 English" : "🇮🇳 தமிழ்";
+    btn.innerHTML = lang === "en" ? "🇮🇳 தமிழ்" : "🇬🇧 English";
   }
 }
 
 function toggleLanguage() {
-  const nextLang = currentLang === "ta" ? "en" : "ta";
+  const nextLang = currentLang === "en" ? "ta" : "en";
   setLanguage(nextLang);
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute("data-theme") || "light";
+  const newTheme = currentTheme === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", newTheme);
+  localStorage.setItem("theme", newTheme);
+  const icon = document.getElementById("themeIcon");
+  if (icon) {
+    icon.className = newTheme === "dark" ? "bi bi-sun-fill" : "bi bi-moon-fill";
+  }
 }
 
 function applyTranslations() {
@@ -276,11 +285,19 @@ function applyTranslations() {
     }
   });
 
-  // Dispatch event so charts/components can refresh labels if needed
   window.dispatchEvent(new CustomEvent("languageChanged", { detail: { lang: currentLang } }));
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const initialLang = localStorage.getItem("uzhavan_lang") || "ta";
+  // Apply saved theme
+  const savedTheme = localStorage.getItem("theme") || "light";
+  document.documentElement.setAttribute("data-theme", savedTheme);
+  const icon = document.getElementById("themeIcon");
+  if (icon) {
+    icon.className = savedTheme === "dark" ? "bi bi-sun-fill" : "bi bi-moon-fill";
+  }
+
+  // Apply default language: English
+  const initialLang = localStorage.getItem("uzhavan_lang") || "en";
   setLanguage(initialLang);
 });

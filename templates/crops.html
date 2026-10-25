@@ -1,29 +1,31 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row g-3 mb-4">
+<div class="row g-3 mb-3">
   <div class="col-12">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center bg-white p-3 rounded shadow-sm border">
-      <div>
-        <h4 class="fw-bold text-success mb-1" data-i18n="crops_title">Crops & Planting Management</h4>
-        <div class="text-muted small">Track your field plots, sowing cycles, growth stages, and harvest schedule across Tamil Nadu seasons</div>
-      </div>
-      <div class="d-flex gap-2 mt-2 mt-md-0">
-        <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#plotModal">
-          <i class="bi bi-plus-lg"></i> <span data-i18n="add_plot_btn">Add Plot</span>
-        </button>
-        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#cropModal">
-          <i class="bi bi-flower2"></i> <span data-i18n="add_crop_btn">Plant New Crop</span>
-        </button>
+    <div class="card card-custom p-3 bg-white">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+        <div>
+          <h5 class="fw-bold mb-0 text-dark" data-i18n="crops_title">Crops & Planting Management</h5>
+          <div class="text-secondary small mt-1">Track your field plots, sowing cycles, growth stages, and harvest schedules across Tamil Nadu seasons</div>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="header-btn" data-bs-toggle="modal" data-bs-target="#plotModal">
+            <i class="bi bi-plus-lg text-success"></i> <span data-i18n="add_plot_btn">Add Plot</span>
+          </button>
+          <button class="header-btn header-btn-primary" data-bs-toggle="modal" data-bs-target="#cropModal">
+            <i class="bi bi-flower2"></i> <span data-i18n="add_crop_btn">Plant New Crop</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
 <!-- Registered Plots Section -->
-<div class="row g-3 mb-4">
+<div class="row g-2 mb-3">
   <div class="col-12">
-    <h6 class="fw-bold text-muted text-uppercase mb-2" data-i18n="plots_title">Farmland Registered Plots</h6>
+    <div class="kpi-label text-muted mb-1" data-i18n="plots_title">Registered Farmland Plots</div>
   </div>
   <div class="col-12">
     <div class="row g-3" id="plotsContainer">
@@ -35,9 +37,9 @@
 </div>
 
 <!-- Active Crops Section -->
-<div class="row g-3 mb-4">
+<div class="row g-2 mb-3">
   <div class="col-12">
-    <h6 class="fw-bold text-muted text-uppercase mb-2">Active Crops & Growth Milestones</h6>
+    <div class="kpi-label text-muted mb-1">Active Crops & Growth Milestones</div>
   </div>
   <div class="col-12">
     <div class="row g-3" id="cropsContainer">
@@ -52,17 +54,17 @@
 <div class="row g-3">
   <div class="col-12">
     <div class="card card-custom p-3 bg-white">
-      <h6 class="fw-bold text-success mb-2">
-        <i class="bi bi-journal-bookmark-fill me-1"></i> Tamil Nadu Agricultural Cropping Seasons (பருவங்கள்)
-      </h6>
+      <div class="card-header-clean px-0 pt-0">
+        <span><i class="bi bi-journal-bookmark text-success me-2"></i>Tamil Nadu Cropping Seasons Reference</span>
+      </div>
       <div class="table-responsive">
-        <table class="table table-bordered table-sm small align-middle mb-0">
-          <thead class="table-light">
+        <table class="table table-hover align-middle small mb-0">
+          <thead>
             <tr>
-              <th>Season (பருவம்)</th>
+              <th>Season</th>
               <th>Sowing Period</th>
               <th>Harvest Period</th>
-              <th>Key Crops</th>
+              <th>Key Regional Crops</th>
               <th>Target Districts</th>
             </tr>
           </thead>
@@ -79,7 +81,7 @@
               <td>August – October</td>
               <td>December – February</td>
               <td>Medium/Long duration Paddy (CR-1009 Sub-1, Ponni, BPT), Banana</td>
-              <td>Cauvery Delta, Northern and Central Tamil Nadu</td>
+              <td>Cauvery Delta, Central and Northern Tamil Nadu</td>
             </tr>
             <tr>
               <td><strong>Navarai / Summer (நவரை)</strong></td>
@@ -90,7 +92,7 @@
             </tr>
             <tr>
               <td><strong>Perennial / Commercial</strong></td>
-              <td>Year-round / Monsoon onset</td>
+              <td>Monsoon onset / Year-round</td>
               <td>10 – 12 Months</td>
               <td>Sugarcane, Banana (Poovan, Nendran), Turmeric, Coconut</td>
               <td>Erode, Coimbatore, Salem, Tiruchirappalli</td>
@@ -107,27 +109,27 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <form id="plotForm">
-        <div class="modal-header bg-success text-white">
-          <h5 class="modal-title" data-i18n="add_plot_btn">Register Farmland Plot</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <div class="modal-header">
+          <h6 class="modal-title fw-bold" data-i18n="add_plot_btn">Register Farmland Plot</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label fw-bold">Plot / Field Name</label>
-            <input type="text" class="form-control" name="name" placeholder="e.g. Vadakku Kadu (வடக்கு காடு)" required>
+            <label class="form-label small fw-bold text-muted">Plot / Field Name</label>
+            <input type="text" class="form-control" name="name" placeholder="e.g. North Parcel (வடக்கு காடு)" required>
           </div>
           <div class="row g-2 mb-3">
             <div class="col-6">
-              <label class="form-label fw-bold">Area (Acres)</label>
+              <label class="form-label small fw-bold text-muted">Area (Acres)</label>
               <input type="number" step="0.1" class="form-control" name="area_acres" placeholder="e.g. 3.5" required>
             </div>
             <div class="col-6">
-              <label class="form-label">Survey Number</label>
+              <label class="form-label small fw-bold text-muted">Survey Number</label>
               <input type="text" class="form-control" name="survey_no" placeholder="e.g. 142/2B">
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label fw-bold">Soil Type</label>
+            <label class="form-label small fw-bold text-muted">Soil Type</label>
             <select class="form-select" name="soil_type" required>
               <option value="Clay Loam / Alluvial (வண்டல் மண்)">Clay Loam / Alluvial (வண்டல் மண்)</option>
               <option value="Red Loam (செம்மண்)">Red Loam (செம்மண்)</option>
@@ -136,13 +138,13 @@
             </select>
           </div>
           <div class="mb-3">
-            <label class="form-label fw-bold">Water / Irrigation Source</label>
-            <input type="text" class="form-control" name="water_source" placeholder="e.g. Cauvery Canal & Borewell / Drip system">
+            <label class="form-label small fw-bold text-muted">Water / Irrigation Source</label>
+            <input type="text" class="form-control" name="water_source" placeholder="e.g. Drip System & Borewell / Canal">
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cancel_btn">Cancel</button>
-          <button type="submit" class="btn btn-success" data-i18n="save_btn">Save Plot</button>
+          <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal" data-i18n="cancel_btn">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-success" data-i18n="save_btn">Save Plot</button>
         </div>
       </form>
     </div>
@@ -154,30 +156,30 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <form id="cropForm">
-        <div class="modal-header bg-success text-white">
-          <h5 class="modal-title" data-i18n="add_crop_btn">Plant New Crop</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <div class="modal-header">
+          <h6 class="modal-title fw-bold" data-i18n="add_crop_btn">Plant New Crop</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label fw-bold">Select Farmland Plot</label>
+            <label class="form-label small fw-bold text-muted">Farmland Plot</label>
             <select class="form-select" name="plot_id" id="cropPlotId" required>
               <option value="">Loading plots...</option>
             </select>
           </div>
           <div class="row g-2 mb-3">
             <div class="col-6">
-              <label class="form-label fw-bold">Crop Name</label>
+              <label class="form-label small fw-bold text-muted">Crop Name</label>
               <input type="text" class="form-control" name="crop_name" placeholder="e.g. Paddy (நெல்)" required>
             </div>
             <div class="col-6">
-              <label class="form-label fw-bold">Variety</label>
+              <label class="form-label small fw-bold text-muted">Variety</label>
               <input type="text" class="form-control" name="variety" placeholder="e.g. CR-1009 Sub-1 / Ponni" required>
             </div>
           </div>
           <div class="row g-2 mb-3">
             <div class="col-6">
-              <label class="form-label fw-bold">Season</label>
+              <label class="form-label small fw-bold text-muted">Season</label>
               <select class="form-select" name="season" required>
                 <option value="Kuruvai (குறுவை)">Kuruvai (குறுவை)</option>
                 <option value="Samba / Thaladi (சம்பா / தாளடி)">Samba / Thaladi (சம்பா / தாளடி)</option>
@@ -186,28 +188,28 @@
               </select>
             </div>
             <div class="col-6">
-              <label class="form-label fw-bold" data-i18n="sowing_date">Sowing Date</label>
+              <label class="form-label small fw-bold text-muted" data-i18n="sowing_date">Sowing Date</label>
               <input type="date" class="form-control" name="sowing_date" required>
             </div>
           </div>
           <div class="row g-2 mb-3">
             <div class="col-6">
-              <label class="form-label" data-i18n="expected_harvest">Expected Harvest</label>
+              <label class="form-label small fw-bold text-muted" data-i18n="expected_harvest">Expected Harvest Date</label>
               <input type="date" class="form-control" name="expected_harvest">
             </div>
             <div class="col-6">
-              <label class="form-label">Cultivated Area (Acres)</label>
+              <label class="form-label small fw-bold text-muted">Area (Acres)</label>
               <input type="number" step="0.1" class="form-control" name="area_cultivated_acres" placeholder="e.g. 2.0">
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label">Notes & Fertilizer Plan</label>
+            <label class="form-label small fw-bold text-muted">Notes & Agronomy Schedule</label>
             <textarea class="form-control" name="notes" rows="2" placeholder="e.g. Basal DAP applied. 1st top dress planned on Day 21."></textarea>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cancel_btn">Cancel</button>
-          <button type="submit" class="btn btn-success" data-i18n="save_btn">Save Planting</button>
+          <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal" data-i18n="cancel_btn">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-success" data-i18n="save_btn">Save Planting</button>
         </div>
       </form>
     </div>

@@ -30,15 +30,17 @@ class TestUzhavanDesk(unittest.TestCase):
 
     def test_signup_with_location_preference(self):
         """Verifies signing up with custom district and village preferences."""
+        import uuid
+        uname = f"farmer_{uuid.uuid4().hex[:6]}"
         signup_data = {
-            "username": "new_signup_farmer",
+            "username": uname,
             "password": "pass1234",
             "farmer_name": "Rangarajan S (ரங்கராஜன்)",
             "farm_name": "Kongu Naturals",
             "district": "Coimbatore",
             "taluk": "Pollachi",
             "village": "Anamalai",
-            "language": "ta"
+            "language": "en"
         }
         resp = self.client.post("/signup", data=signup_data, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)

@@ -1,128 +1,124 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row g-3 mb-4">
+<!-- Welcome & Overview Banner -->
+<div class="row g-3 mb-3">
   <div class="col-12">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center bg-white p-3 rounded shadow-sm border">
-      <div>
-        <h4 class="fw-bold mb-1">
-          <span data-i18n="welcome_farmer">Welcome, Farmer!</span>
-          <span class="text-success">{{ settings.farmer_name or 'Murugan K' }}</span>
-        </h4>
-        <div class="text-muted small">
-          <i class="bi bi-geo-alt-fill text-danger"></i> {{ settings.farm_name or 'Uzhavan Farm' }} - {{ settings.village }}, {{ settings.district }}
+    <div class="card card-custom p-3 bg-white">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+        <div>
+          <div class="d-flex align-items-center gap-2">
+            <h5 class="fw-bold mb-0 text-dark">
+              <span data-i18n="welcome_farmer">Welcome,</span>
+              <span>{{ current_user.farmer_name or 'Farmer' }}</span>
+            </h5>
+            <span class="badge-brand"><i class="bi bi-shield-check me-1"></i>Active</span>
+          </div>
+          <div class="text-secondary small mt-1">
+            <i class="bi bi-geo-alt-fill text-danger"></i> {{ current_user.farm_name or 'Uzhavan Farm' }} &bull; {{ current_user.village or '' }} {{ current_user.taluk or '' }}, <strong>{{ current_user.district }}</strong>
+          </div>
         </div>
-      </div>
-      <div class="mt-2 mt-md-0" id="dashWeatherText">
-        <span class="badge bg-light text-dark border p-2">
-          <i class="bi bi-cloud-sun text-warning me-1"></i> Loading weather for {{ settings.district }}...
-        </span>
+        <div class="d-flex align-items-center gap-2" id="dashWeatherText">
+          <span class="badge-clean py-1 px-2">
+            <i class="bi bi-cloud-sun text-warning me-1"></i> Loading weather for {{ current_user.district }}...
+          </span>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- KPI Cards Grid -->
-<div class="row g-3 mb-4">
+<!-- Institutional KPI Cards Grid -->
+<div class="row g-3 mb-3">
   <!-- Farmland & Crops -->
   <div class="col-6 col-lg-3">
     <div class="kpi-card h-100">
-      <div class="kpi-icon bg-success-subtle text-success">
-        <i class="bi bi-grid-3x3-gap-fill"></i>
-      </div>
-      <div class="kpi-label" data-i18n="kpi_plots">Plots & Land</div>
-      <div class="kpi-value" id="kpiPlots">--</div>
-      <div class="small text-muted mt-1"><span id="kpiCrops">--</span> <span data-i18n="kpi_crops">Active Crops</span></div>
+      <div class="kpi-label" data-i18n="kpi_plots">Farmland & Land Holdings</div>
+      <div class="kpi-value mt-1" id="kpiPlots">--</div>
+      <div class="kpi-subtext"><span id="kpiCrops" class="fw-bold text-dark">--</span> <span data-i18n="kpi_crops">Active Crops</span></div>
     </div>
   </div>
 
   <!-- Livestock -->
   <div class="col-6 col-lg-3">
     <div class="kpi-card h-100">
-      <div class="kpi-icon bg-warning-subtle text-warning">
-        <i class="bi bi-heart-pulse-fill"></i>
-      </div>
-      <div class="kpi-label" data-i18n="kpi_livestock">Livestock</div>
-      <div class="kpi-value" id="kpiLivestock">--</div>
-      <div class="small text-muted mt-1">Cows, Buffaloes & Goats</div>
+      <div class="kpi-label" data-i18n="kpi_livestock">Livestock Holdings</div>
+      <div class="kpi-value mt-1 text-warning-emphasis" id="kpiLivestock">--</div>
+      <div class="kpi-subtext">Cattle, Buffaloes & Goats</div>
     </div>
   </div>
 
   <!-- Revenue -->
   <div class="col-6 col-lg-3">
     <div class="kpi-card h-100">
-      <div class="kpi-icon bg-primary-subtle text-primary">
-        <i class="bi bi-cash-stack"></i>
-      </div>
-      <div class="kpi-label" data-i18n="kpi_revenue">Total Revenue</div>
-      <div class="kpi-value text-primary" id="kpiRevenue">₹--</div>
-      <div class="small text-muted mt-1">Produce & Milk Sales</div>
+      <div class="kpi-label" data-i18n="kpi_revenue">Total Revenue Realized</div>
+      <div class="kpi-value mt-1 text-primary" id="kpiRevenue">₹--</div>
+      <div class="kpi-subtext">Crops & Daily Dairy Sales</div>
     </div>
   </div>
 
-  <!-- Net Profit -->
+  <!-- Net Farm Profit -->
   <div class="col-6 col-lg-3">
     <div class="kpi-card h-100">
-      <div class="kpi-icon bg-success-subtle text-success">
-        <i class="bi bi-graph-up-arrow"></i>
-      </div>
-      <div class="kpi-label" data-i18n="kpi_net_profit">Net Farm Profit</div>
-      <div class="kpi-value text-success" id="kpiNetProfit">₹--</div>
-      <div class="small text-muted mt-1">Expenses: <span id="kpiExpenses" class="text-danger">₹--</span></div>
+      <div class="kpi-label" data-i18n="kpi_net_profit">Net Farm Profit / Loss</div>
+      <div class="kpi-value mt-1 text-success" id="kpiNetProfit">₹--</div>
+      <div class="kpi-subtext">Expenditures: <span id="kpiExpenses" class="text-danger fw-bold">₹--</span></div>
     </div>
   </div>
 </div>
 
-<!-- Quick Action Buttons -->
-<div class="row g-3 mb-4">
+<!-- Quick Farm Actions -->
+<div class="row g-2 mb-3">
   <div class="col-12">
-    <h6 class="fw-bold text-muted mb-2 text-uppercase" data-i18n="quick_actions">Quick Farm Actions</h6>
+    <div class="d-flex justify-content-between align-items-center mb-1">
+      <div class="kpi-label text-muted" data-i18n="quick_actions">Quick Action Deck</div>
+    </div>
   </div>
   <div class="col-4 col-md-2">
     <button class="btn-action-tile w-100" data-bs-toggle="modal" data-bs-target="#txnModal" onclick="setTxnType('expense')">
       <i class="bi bi-dash-circle text-danger"></i>
-      <span class="small fw-bold" data-i18n="action_log_expense">Record Expense</span>
+      <span data-i18n="action_log_expense">Log Expense</span>
     </button>
   </div>
   <div class="col-4 col-md-2">
     <button class="btn-action-tile w-100" data-bs-toggle="modal" data-bs-target="#txnModal" onclick="setTxnType('income')">
       <i class="bi bi-plus-circle text-success"></i>
-      <span class="small fw-bold" data-i18n="action_log_income">Record Income</span>
+      <span data-i18n="action_log_income">Log Return</span>
     </button>
   </div>
   <div class="col-4 col-md-2">
     <button class="btn-action-tile w-100" data-bs-toggle="modal" data-bs-target="#milkModal">
-      <i class="bi bi-droplet-fill text-primary"></i>
-      <span class="small fw-bold" data-i18n="action_log_milk">Log Milk</span>
+      <i class="bi bi-droplet-half text-primary"></i>
+      <span data-i18n="action_log_milk">Daily Milk</span>
     </button>
   </div>
   <div class="col-4 col-md-2">
     <button class="btn-action-tile w-100" data-bs-toggle="modal" data-bs-target="#breedingModal">
       <i class="bi bi-activity text-warning"></i>
-      <span class="small fw-bold" data-i18n="action_add_breeding">New Breeding</span>
+      <span data-i18n="action_add_breeding">Log AI / Breed</span>
     </button>
   </div>
   <div class="col-4 col-md-2">
     <button class="btn-action-tile w-100" data-bs-toggle="modal" data-bs-target="#cropModal">
       <i class="bi bi-flower2 text-success"></i>
-      <span class="small fw-bold" data-i18n="action_add_crop">New Planting</span>
+      <span data-i18n="action_add_crop">New Planting</span>
     </button>
   </div>
   <div class="col-4 col-md-2">
     <a href="/mandi" class="btn-action-tile w-100 text-decoration-none">
       <i class="bi bi-shop text-info"></i>
-      <span class="small fw-bold" data-i18n="nav_mandi">Check Mandi</span>
+      <span data-i18n="nav_mandi">Live Mandi</span>
     </a>
   </div>
 </div>
 
-<!-- Urgent Alerts & Weather Section -->
+<!-- Alerts & Agro-Weather Section -->
 <div class="row g-3">
   <div class="col-lg-8">
     <div class="card card-custom h-100">
       <div class="card-header-clean">
-        <span><i class="bi bi-bell-fill text-warning me-2"></i><span data-i18n="urgent_alerts">Important Farm & Breeding Alerts</span></span>
-        <a href="/livestock" class="small text-success text-decoration-none fw-bold">View Livestock &rarr;</a>
+        <span><i class="bi bi-bell-fill text-warning me-2"></i><span data-i18n="urgent_alerts">Operational & Gestation Alerts</span></span>
+        <a href="/livestock" class="small text-success text-decoration-none fw-bold">Manage Livestock &rarr;</a>
       </div>
       <div class="p-3" id="dashAlertsContainer">
         <div class="text-center py-4 text-muted">
@@ -135,20 +131,20 @@
   <div class="col-lg-4">
     <div class="card card-custom h-100">
       <div class="card-header-clean">
-        <span><i class="bi bi-cloud-sun-fill text-info me-2"></i><span data-i18n="weather_widget_title">Weather & Agro-Advice</span></span>
+        <span><i class="bi bi-cloud-sun text-info me-2"></i><span data-i18n="weather_widget_title">Local Weather & Advisory</span></span>
         <a href="/advisories" class="small text-success text-decoration-none fw-bold">7-Day &rarr;</a>
       </div>
       <div class="p-3">
-        <div class="bg-light p-3 rounded mb-3">
+        <div class="p-3 rounded bg-light border mb-3">
           <div class="d-flex justify-content-between align-items-center">
             <div>
-              <div class="h3 fw-bold mb-0" id="dashTemp">31°C</div>
-              <div class="small text-muted" id="dashCond">Partly Cloudy</div>
+              <div class="h3 fw-bold mb-0 text-dark" id="dashTemp">31°C</div>
+              <div class="small text-secondary" id="dashCond">Partly Cloudy</div>
             </div>
             <i class="bi bi-sun fs-1 text-warning"></i>
           </div>
         </div>
-        <div class="alert alert-success border-0 small mb-0">
+        <div class="alert alert-card info border-0 small mb-0">
           <strong><i class="bi bi-info-circle me-1"></i> TNAU Advisory:</strong>
           <span id="dashAdviceText">Ensure light irrigation for vegetable crops. Current weather is favorable for intercultural operations.</span>
         </div>
@@ -158,29 +154,29 @@
 </div>
 
 <!-- ==========================================
-     MODALS FOR QUICK ACTIONS
+     MODALS
      ========================================== -->
 
-<!-- Transaction Modal (Income / Expense) -->
+<!-- Transaction Modal -->
 <div class="modal fade" id="txnModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
       <form id="txnForm">
-        <div class="modal-header bg-success text-white">
-          <h5 class="modal-title" data-i18n="add_txn_btn">Record Transaction</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <div class="modal-header">
+          <h6 class="modal-title fw-bold" data-i18n="add_txn_btn">Record Financial Transaction</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label fw-bold" data-i18n="type_expense">Transaction Type</label>
+            <label class="form-label small fw-bold text-muted" data-i18n="type_expense">Transaction Type</label>
             <select class="form-select" name="type" id="txnTypeSelect" required>
               <option value="expense">Expense (செலவு)</option>
               <option value="income">Income (வரவு)</option>
             </select>
           </div>
           <div class="mb-3">
-            <label class="form-label fw-bold" data-i18n="category">Category</label>
-            <input type="text" class="form-control" name="category" list="catSuggestions" placeholder="e.g. Seeds, Fertilizer, Labor, Diesel, Milk Sale..." required>
+            <label class="form-label small fw-bold text-muted" data-i18n="category">Category</label>
+            <input type="text" class="form-control" name="category" list="catSuggestions" placeholder="e.g. Seeds, Fertilizer, Labor, Diesel, Milk..." required>
             <datalist id="catSuggestions">
               <option value="Seeds / நாற்று">
               <option value="Fertilizer / உரங்கள்">
@@ -196,22 +192,22 @@
           </div>
           <div class="row g-2 mb-3">
             <div class="col-6">
-              <label class="form-label fw-bold" data-i18n="amount">Amount (₹)</label>
+              <label class="form-label small fw-bold text-muted" data-i18n="amount">Amount (₹)</label>
               <input type="number" step="0.01" class="form-control" name="amount" required placeholder="0.00">
             </div>
             <div class="col-6">
-              <label class="form-label fw-bold" data-i18n="date">Date</label>
+              <label class="form-label small fw-bold text-muted" data-i18n="date">Date</label>
               <input type="date" class="form-control" name="date" required value="{{ date }}">
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label">Notes / Description</label>
-            <input type="text" class="form-control" name="desc" placeholder="Details (vendor, quantity, etc.)">
+            <label class="form-label small fw-bold text-muted">Notes / Description</label>
+            <input type="text" class="form-control" name="desc" placeholder="Details (vendor, quantity, receipt #)">
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cancel_btn">Cancel</button>
-          <button type="submit" class="btn btn-success" data-i18n="save_btn">Save Record</button>
+          <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal" data-i18n="cancel_btn">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-success" data-i18n="save_btn">Save Record</button>
         </div>
       </form>
     </div>
@@ -223,53 +219,53 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <form id="milkForm">
-        <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title" data-i18n="milk_log_title">Log Daily Milk Yield</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <div class="modal-header">
+          <h6 class="modal-title fw-bold" data-i18n="milk_log_title">Log Daily Milk Yield</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label fw-bold">Select Milking Cow / Buffalo</label>
+            <label class="form-label small fw-bold text-muted">Milking Cow / Buffalo</label>
             <select class="form-select" name="animal_id" id="milkAnimalId" required>
               <option value="">Loading animals...</option>
             </select>
           </div>
           <div class="mb-3">
-            <label class="form-label fw-bold">Date</label>
+            <label class="form-label small fw-bold text-muted">Date</label>
             <input type="date" class="form-control" name="date" required value="{{ date }}">
           </div>
           <div class="row g-2 mb-3">
             <div class="col-6">
-              <label class="form-label" data-i18n="morning_liters">Morning (Liters)</label>
+              <label class="form-label small fw-bold text-muted" data-i18n="morning_liters">Morning (Liters)</label>
               <input type="number" step="0.1" class="form-control" name="morning_liters" required placeholder="0.0">
             </div>
             <div class="col-6">
-              <label class="form-label" data-i18n="evening_liters">Evening (Liters)</label>
+              <label class="form-label small fw-bold text-muted" data-i18n="evening_liters">Evening (Liters)</label>
               <input type="number" step="0.1" class="form-control" name="evening_liters" required placeholder="0.0">
             </div>
           </div>
           <div class="row g-2 mb-3">
             <div class="col-4">
-              <label class="form-label">Fat %</label>
+              <label class="form-label small fw-bold text-muted">Fat %</label>
               <input type="number" step="0.1" class="form-control" name="fat_pct" placeholder="4.2">
             </div>
             <div class="col-4">
-              <label class="form-label">SNF %</label>
+              <label class="form-label small fw-bold text-muted">SNF %</label>
               <input type="number" step="0.1" class="form-control" name="snf_pct" placeholder="8.5">
             </div>
             <div class="col-4">
-              <label class="form-label" data-i18n="rate_per_liter">Rate / L</label>
+              <label class="form-label small fw-bold text-muted" data-i18n="rate_per_liter">Rate / L</label>
               <input type="number" step="0.5" class="form-control" name="rate_per_liter" value="38.0">
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label">Buyer / Cooperative</label>
+            <label class="form-label small fw-bold text-muted">Buyer / Cooperative</label>
             <input type="text" class="form-control" name="buyer" value="Aavin / Local Society">
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cancel_btn">Cancel</button>
-          <button type="submit" class="btn btn-primary" data-i18n="save_btn">Save Milk Log</button>
+          <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal" data-i18n="cancel_btn">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-primary" data-i18n="save_btn">Save Milk Log</button>
         </div>
       </form>
     </div>
@@ -281,42 +277,42 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <form id="breedingForm">
-        <div class="modal-header bg-warning text-dark">
-          <h5 class="modal-title" data-i18n="action_add_breeding">Record Insemination / Mating</h5>
+        <div class="modal-header">
+          <h6 class="modal-title fw-bold" data-i18n="action_add_breeding">Record Insemination / Mating</h6>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label fw-bold">Select Animal</label>
+            <label class="form-label small fw-bold text-muted">Select Animal</label>
             <select class="form-select" name="animal_id" id="breedingAnimalId" required>
               <option value="">Loading animals...</option>
             </select>
           </div>
           <div class="row g-2 mb-3">
             <div class="col-6">
-              <label class="form-label fw-bold">Breeding Type</label>
+              <label class="form-label small fw-bold text-muted">Breeding Type</label>
               <select class="form-select" name="event_type" required>
                 <option value="insemination">Artificial Insemination (AI)</option>
                 <option value="mating">Natural Mating Service</option>
               </select>
             </div>
             <div class="col-6">
-              <label class="form-label fw-bold">Service Date</label>
+              <label class="form-label small fw-bold text-muted">Service Date</label>
               <input type="date" class="form-control" name="date" required value="{{ date }}">
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label">Bull / Semen Straw Details</label>
+            <label class="form-label small fw-bold text-muted">Bull / Straw Details</label>
             <input type="text" class="form-control" name="semen_bull_info" placeholder="e.g. Kangayam Bull #402 / Erode Station">
           </div>
           <div class="mb-3">
-            <label class="form-label">Veterinary Doctor / Technician</label>
+            <label class="form-label small fw-bold text-muted">Veterinarian / Technician</label>
             <input type="text" class="form-control" name="technician" placeholder="e.g. Dr. Senthil / VAS Dispensary">
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cancel_btn">Cancel</button>
-          <button type="submit" class="btn btn-warning" data-i18n="save_btn">Record & Calculate Milestones</button>
+          <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal" data-i18n="cancel_btn">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-warning" data-i18n="save_btn">Record Milestones</button>
         </div>
       </form>
     </div>
@@ -328,30 +324,30 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <form id="cropForm">
-        <div class="modal-header bg-success text-white">
-          <h5 class="modal-title" data-i18n="add_crop_btn">Plant New Crop</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <div class="modal-header">
+          <h6 class="modal-title fw-bold" data-i18n="add_crop_btn">Plant New Crop</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label fw-bold">Select Plot</label>
+            <label class="form-label small fw-bold text-muted">Select Farmland Plot</label>
             <select class="form-select" name="plot_id" id="cropPlotId" required>
               <option value="">Loading plots...</option>
             </select>
           </div>
           <div class="row g-2 mb-3">
             <div class="col-6">
-              <label class="form-label fw-bold">Crop Name</label>
+              <label class="form-label small fw-bold text-muted">Crop Name</label>
               <input type="text" class="form-control" name="crop_name" placeholder="e.g. Paddy (நெல்)" required>
             </div>
             <div class="col-6">
-              <label class="form-label fw-bold">Variety</label>
-              <input type="text" class="form-control" name="variety" placeholder="e.g. CR-1009 / Ponni / Poovan" required>
+              <label class="form-label small fw-bold text-muted">Variety</label>
+              <input type="text" class="form-control" name="variety" placeholder="e.g. CR-1009 Sub-1 / Ponni" required>
             </div>
           </div>
           <div class="row g-2 mb-3">
             <div class="col-6">
-              <label class="form-label fw-bold">Season</label>
+              <label class="form-label small fw-bold text-muted">Season</label>
               <select class="form-select" name="season" required>
                 <option value="Kuruvai (குறுவை)">Kuruvai (குறுவை)</option>
                 <option value="Samba / Thaladi (சம்பா / தாளடி)">Samba / Thaladi (சம்பா / தாளடி)</option>
@@ -360,24 +356,24 @@
               </select>
             </div>
             <div class="col-6">
-              <label class="form-label fw-bold" data-i18n="sowing_date">Sowing Date</label>
-              <input type="date" class="form-control" name="sowing_date" required value="{{ date }}">
+              <label class="form-label small fw-bold text-muted" data-i18n="sowing_date">Sowing Date</label>
+              <input type="date" class="form-control" name="sowing_date" required>
             </div>
           </div>
           <div class="row g-2 mb-3">
             <div class="col-6">
-              <label class="form-label" data-i18n="expected_harvest">Expected Harvest Date</label>
+              <label class="form-label small fw-bold text-muted" data-i18n="expected_harvest">Expected Harvest Date</label>
               <input type="date" class="form-control" name="expected_harvest">
             </div>
             <div class="col-6">
-              <label class="form-label">Area (Acres)</label>
-              <input type="number" step="0.1" class="form-control" name="area_cultivated_acres" placeholder="e.g. 2.5">
+              <label class="form-label small fw-bold text-muted">Area (Acres)</label>
+              <input type="number" step="0.1" class="form-control" name="area_cultivated_acres" placeholder="e.g. 2.0">
             </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cancel_btn">Cancel</button>
-          <button type="submit" class="btn btn-success" data-i18n="save_btn">Save Planting</button>
+          <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal" data-i18n="cancel_btn">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-success" data-i18n="save_btn">Save Planting</button>
         </div>
       </form>
     </div>
@@ -393,15 +389,14 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    // Set today's date in all date inputs if empty
     const today = new Date().toISOString().split("T")[0];
     document.querySelectorAll("input[type='date']").forEach(inp => {
       if (!inp.value) inp.value = today;
     });
 
     loadDashboardOverview();
-    loadLivestock(); // for populating dropdowns
-    loadCropsAndPlots(); // for populating plots dropdown
+    loadLivestock();
+    loadCropsAndPlots();
   });
 </script>
 {% endblock %}
