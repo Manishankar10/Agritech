@@ -4,6 +4,8 @@ services:
     env: python
     region: singapore # Closest low-latency region to Tamil Nadu / South India
     plan: free
+    branch: main
+    autoDeployTrigger: commit
     buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 120"
     envVars:
