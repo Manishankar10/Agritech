@@ -16,6 +16,23 @@ class TestUzhavanDesk(unittest.TestCase):
         self.assertEqual(resp.status_code, 302)
         self.assertIn("/login", resp.headers["Location"])
 
+    def test_login_and_signup_pages_render_correctly(self):
+        """Verifies login and signup pages render visible HTML with closed style tags and forms."""
+        login_resp = self.client.get("/login?next=https://uzhavan-agritech.onrender.com/")
+        self.assertEqual(login_resp.status_code, 200)
+        login_html = login_resp.data.decode("utf-8")
+        self.assertIn("</style>", login_html)
+        self.assertIn("Sign In to Farm Dashboard", login_html)
+        self.assertIn("<form", login_html)
+        self.assertIn("username", login_html)
+
+        signup_resp = self.client.get("/signup")
+        self.assertEqual(signup_resp.status_code, 200)
+        signup_html = signup_resp.data.decode("utf-8")
+        self.assertIn("</style>", signup_html)
+        self.assertIn("Register Farmer Profile", signup_html)
+        self.assertIn("<form", signup_html)
+
     def test_login_and_pages_load(self):
         """Verifies demo login and authenticated page loads."""
         # Perform demo login

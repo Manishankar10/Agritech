@@ -45,9 +45,10 @@
       border-bottom: 1px solid var(--border-color);
       text-align: center;
     }
-<script>
-  document.documentElement.setAttribute("data-theme", localStorage.getItem("theme") || "light");
-</script>
+  </style>
+  <script>
+    document.documentElement.setAttribute("data-theme", localStorage.getItem("theme") || "light");
+  </script>
 </head>
 <body>
 
@@ -66,7 +67,7 @@
     </div>
     {% endif %}
 
-    <form method="POST" action="/login">
+    <form method="POST" action="/login{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}">
       <div class="mb-3">
         <label class="form-label small fw-bold text-muted">Username</label>
         <div class="input-group">
@@ -91,7 +92,7 @@
     </form>
 
     <!-- Quick Demo Login Button -->
-    <form method="POST" action="/login" class="mb-3">
+    <form method="POST" action="/login{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}" class="mb-3">
       <input type="hidden" name="action" value="demo">
       <button type="submit" class="btn btn-light border w-100 py-2 small fw-bold text-secondary">
         <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Instant Demo Login (Murugan - Thanjavur)
