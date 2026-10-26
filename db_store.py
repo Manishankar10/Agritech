@@ -4,32 +4,71 @@ import uuid
 from datetime import datetime, date
 from werkzeug.security import generate_password_hash, check_password_hash
 
-_MONGO_URI = os.environ.get("MONGO_URI") or os.environ.get("MONGODB_URI")
-db = None
+# --------------------------------------------------------------------------
+# DATABASE CONFIGURATION & STRICT ENVIRONMENT ISOLATION
+# --------------------------------------------------------------------------
+APP_ENV = (
+    os.environ.get("APP_ENV") 
+    or os.environ.get("FLASK_ENV") 
+    or ("production" if os.environ.get("RENDER") else "development")
+).lower().strip()
 
-if _MONGO_URI:
-    try:
-        from pymongo import MongoClient
-        _client = MongoClient(_MONGO_URI, serverSelectionTimeoutMS=5000)
-        _client.admin.command('ping')
-        custom_db = os.environ.get("MONGO_DB_NAME")
-        if custom_db:
-            db = _client.get_database(custom_db.strip())
-        else:
-            try:
-                def_db = _client.get_default_database()
-                if def_db is not None and def_db.name not in ("admin", "local", "config", "test", "capital_desk"):
-                    db = def_db
-                else:
-                    db = _client.get_database("uzhavan_db")
-            except Exception:
-                db = _client.get_database("uzhavan_db")
-        print(f"[OK] Successfully connected to MongoDB Atlas database: '{db.name}'!")
-    except Exception as e:
-        print(f"[WARN] MongoDB Atlas connection error (fallback to local JSON): {e}")
-        db = None
+IS_PRODUCTION = (APP_ENV == "production") or (os.environ.get("RENDER") == "true")
+
+db = None
+DB_MODE = "LOCAL_JSON"
+CONNECTED_DB_NAME = None
+
+if IS_PRODUCTION:
+    # PRODUCTION CONFIGURATION:
+    # Connects to production MongoDB Atlas.
+    _PROD_URI = os.environ.get("PROD_MONGO_URI") or os.environ.get("MONGO_URI") or os.environ.get("MONGODB_URI")
+    _PROD_DB_NAME = (os.environ.get("MONGO_DB_NAME") or os.environ.get("PROD_DB_NAME") or "uzhavan_prod_db").strip()
+    
+    if _PROD_URI:
+        try:
+            from pymongo import MongoClient
+            _client = MongoClient(_PROD_URI, serverSelectionTimeoutMS=5000)
+            _client.admin.command('ping')
+            db = _client.get_database(_PROD_DB_NAME)
+            DB_MODE = "PROD_MONGODB"
+            CONNECTED_DB_NAME = db.name
+            print(f"[OK] [PRODUCTION] Connected to Production MongoDB Atlas database: '{db.name}'.")
+        except Exception as e:
+            print(f"[WARN] [PRODUCTION] MongoDB Atlas connection error: {e}. Falling back to local data store.")
+            db = None
+    else:
+        print("[WARN] [PRODUCTION] No MONGO_URI specified for production.")
 else:
-    print("[INFO] No MONGO_URI specified. Operating in high-speed Local JSON store mode.")
+    # DEVELOPMENT / LOCAL CONFIGURATION:
+    # CRITICAL: Local development changes must NEVER touch production MongoDB data.
+    # 1. By default, local dev runs in isolated Local JSON mode (local_data/).
+    # 2. If DEV_MONGO_URI is provided or USE_DEV_MONGO=true, it connects ONLY to 'uzhavan_dev_db'.
+    # 3. Connection to production database names in development is strictly forbidden.
+    _DEV_URI = os.environ.get("DEV_MONGO_URI") or (os.environ.get("MONGO_URI") if os.environ.get("USE_DEV_MONGO") == "true" else None)
+    _DEV_DB_NAME = (os.environ.get("DEV_MONGO_DB_NAME") or "uzhavan_dev_db").strip()
+    
+    # Security Guard: Prevent accidental connection to production db from local
+    if _DEV_DB_NAME in ("uzhavan_prod_db", "uzhavan_db", "production"):
+        print(f"[SECURITY GUARD] Attempted to use production database '{_DEV_DB_NAME}' in development mode! Forcing isolation to 'uzhavan_dev_db'.")
+        _DEV_DB_NAME = "uzhavan_dev_db"
+
+    if _DEV_URI:
+        try:
+            from pymongo import MongoClient
+            _client = MongoClient(_DEV_URI, serverSelectionTimeoutMS=5000)
+            _client.admin.command('ping')
+            db = _client.get_database(_DEV_DB_NAME)
+            DB_MODE = "DEV_MONGODB"
+            CONNECTED_DB_NAME = db.name
+            print(f"[OK] [DEVELOPMENT] Connected to isolated Development MongoDB database: '{db.name}'.")
+            print(f"     [ISOLATION GUARANTEE] Local development operations will NEVER affect production data.")
+        except Exception as e:
+            print(f"[WARN] [DEVELOPMENT] Dev MongoDB connection error: {e}. Operating in isolated local JSON mode.")
+            db = None
+    else:
+        print("[OK] [DEVELOPMENT] Operating in completely isolated Local JSON storage mode (local_data/).")
+        print("     [ISOLATION GUARANTEE] Local development data is completely separate from production MongoDB data.")
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "local_data")
 os.makedirs(DATA_DIR, exist_ok=True)

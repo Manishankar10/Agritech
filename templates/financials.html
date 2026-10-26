@@ -3,10 +3,10 @@
 {% block content %}
 <div class="row g-3 mb-3">
   <div class="col-12">
-    <div class="card card-custom p-3 bg-white">
+    <div class="card card-custom p-3">
       <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
         <div>
-          <h5 class="fw-bold mb-0 text-dark" data-i18n="fin_title">Farm Financials & P&L Statement</h5>
+          <h5 class="fw-bold mb-0" data-i18n="fin_title">Farm Financials & P&L Statement</h5>
           <div class="text-secondary small mt-1">Cost of cultivation, farm expenditures, sales returns, and cash flow statement</div>
         </div>
         <div>
@@ -54,38 +54,28 @@
   </div>
 </div>
 
-<!-- Chart & Transactions -->
+<!-- Vertical Layout: Transactions Ledger (Full Width) & Expense Breakdown -->
 <div class="row g-3 mb-3">
-  <div class="col-lg-5">
-    <div class="card card-custom p-3 h-100 bg-white">
+  <!-- 1. Recent Farm Transactions Ledger (Full Width for Maximum Readability) -->
+  <div class="col-12">
+    <div class="card card-custom p-3">
       <div class="card-header-clean px-0 pt-0">
-        <span data-i18n="breakdown_expenses">Expense Breakdown by Category</span>
-      </div>
-      <div style="height: 240px; position: relative;" class="mt-2">
-        <canvas id="expenseChart"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-lg-7">
-    <div class="card card-custom p-3 h-100 bg-white">
-      <div class="card-header-clean px-0 pt-0">
-        <span data-i18n="recent_txns">Recent Farm Ledger Transactions</span>
-        <button class="header-btn" data-bs-toggle="modal" data-bs-target="#txnModal" onclick="resetTxnModal()">
-          + Add Entry
+        <span class="fw-bold fs-6" data-i18n="recent_txns">Recent Farm Ledger Transactions</span>
+        <button class="header-btn header-btn-primary" data-bs-toggle="modal" data-bs-target="#txnModal" onclick="resetTxnModal()">
+          <i class="bi bi-plus-lg me-1"></i> Add Entry
         </button>
       </div>
 
-      <div class="table-responsive">
+      <div class="table-responsive mt-2">
         <table class="table table-hover align-middle small mb-0">
           <thead>
             <tr>
-              <th data-i18n="date">Date</th>
-              <th>Type</th>
-              <th data-i18n="category">Category</th>
-              <th>Description</th>
-              <th data-i18n="amount">Amount</th>
-              <th>Action</th>
+              <th data-i18n="date" class="text-nowrap" style="min-width: 95px;">Date</th>
+              <th class="text-nowrap" style="min-width: 80px;">Type</th>
+              <th data-i18n="category" style="min-width: 140px;">Category</th>
+              <th style="min-width: 260px;">Description & Produce Details</th>
+              <th data-i18n="amount" class="text-end text-nowrap" style="min-width: 120px;">Amount</th>
+              <th class="text-center text-nowrap" style="min-width: 70px;">Action</th>
             </tr>
           </thead>
           <tbody id="txnsTableBody">
@@ -94,6 +84,18 @@
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Expense Breakdown by Category (Stacked Vertically Below) -->
+  <div class="col-12">
+    <div class="card card-custom p-3">
+      <div class="card-header-clean px-0 pt-0">
+        <span class="fw-bold fs-6" data-i18n="breakdown_expenses">Expense Breakdown by Category</span>
+      </div>
+      <div id="expenseChartContainer" style="min-height: 240px; position: relative;" class="mt-2 d-flex align-items-center justify-content-center">
+        <canvas id="expenseChart" style="max-height: 260px;"></canvas>
       </div>
     </div>
   </div>

@@ -11,6 +11,10 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.12
+      - key: APP_ENV
+        value: production
+      - key: MONGO_DB_NAME
+        value: uzhavan_prod_db
       - key: MONGO_URI
         sync: false # Set in Render Dashboard with your MongoDB Atlas connection string
       - key: SECRET_KEY

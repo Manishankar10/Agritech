@@ -3,10 +3,10 @@
 {% block content %}
 <div class="row g-3 mb-3">
   <div class="col-12">
-    <div class="card card-custom p-3 bg-white">
+    <div class="card card-custom p-3">
       <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
         <div>
-          <h5 class="fw-bold mb-0 text-dark" data-i18n="livestock_title">Livestock Registry & Reproductive Health</h5>
+          <h5 class="fw-bold mb-0" data-i18n="livestock_title">Livestock Registry & Reproductive Health</h5>
           <div class="text-secondary small mt-1">Cattle & goat breeding cycles, gestation countdowns (Cow: 283d, Goat: 150d), daily milk logs, and vaccination schedules</div>
         </div>
         <div class="d-flex gap-2">
@@ -42,18 +42,18 @@
   </div>
 </div>
 
-<!-- Reproduction Calculator & Milk Logs -->
+<!-- Vertical Layout: Gestation Calculator & Milk Yield Logs -->
 <div class="row g-3 mb-3">
-  <!-- Calculator -->
-  <div class="col-lg-6">
-    <div class="card card-custom h-100 p-3 bg-white">
+  <!-- 1. Gestation & Milestone Calculator (Full Width) -->
+  <div class="col-12">
+    <div class="card card-custom p-3">
       <div class="card-header-clean px-0 pt-0">
-        <span><i class="bi bi-calculator text-success me-2"></i><span data-i18n="breeding_calc_title">Gestation & Milestone Calculator</span></span>
+        <span class="fw-bold"><i class="bi bi-calculator text-success me-2"></i><span data-i18n="breeding_calc_title">Gestation & Milestone Calculator</span></span>
       </div>
       <p class="small text-muted mb-3">Preview gestation countdown, PD check, and dry-off dates dynamically</p>
 
       <div class="row g-2 mb-3">
-        <div class="col-6">
+        <div class="col-12 col-md-6">
           <label class="form-label small fw-bold text-muted" data-i18n="species">Species</label>
           <select id="calcSpecies" class="form-select" onchange="runLiveReproductionCalc()">
             <option value="cow">Cow / Cattle (283 Days)</option>
@@ -61,38 +61,38 @@
             <option value="goat">Goat / Sheep (150 Days)</option>
           </select>
         </div>
-        <div class="col-6">
+        <div class="col-12 col-md-6">
           <label class="form-label small fw-bold text-muted">Service / Mating Date</label>
           <input type="date" id="calcDate" class="form-control" onchange="runLiveReproductionCalc()">
         </div>
       </div>
 
-      <div id="calcResults" class="p-3 rounded bg-light border">
+      <div id="calcResults" class="p-3 rounded box-subtle">
         <div class="small text-muted text-center py-2">Select a service date above to preview pregnancy milestones.</div>
       </div>
     </div>
   </div>
 
-  <!-- Milk Logs -->
-  <div class="col-lg-6">
-    <div class="card card-custom h-100 p-3 bg-white">
+  <!-- 2. Recent Milk Yield Logs (Full Width for Spacious Table Layout) -->
+  <div class="col-12">
+    <div class="card card-custom p-3">
       <div class="card-header-clean px-0 pt-0">
-        <span><i class="bi bi-droplet-half text-primary me-2"></i><span data-i18n="milk_log_title">Recent Milk Yield Logs</span></span>
-        <button class="header-btn" data-bs-toggle="modal" data-bs-target="#milkModal" onclick="resetMilkModal()">
-          + Quick Log
+        <span class="fw-bold"><i class="bi bi-droplet-half text-primary me-2"></i><span data-i18n="milk_log_title">Recent Milk Yield Logs</span></span>
+        <button class="header-btn header-btn-primary" data-bs-toggle="modal" data-bs-target="#milkModal" onclick="resetMilkModal()">
+          <i class="bi bi-plus-lg me-1"></i> Quick Log
         </button>
       </div>
 
-      <div class="table-responsive">
+      <div class="table-responsive mt-2">
         <table class="table table-hover align-middle small mb-0">
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Animal</th>
-              <th>M + E (L)</th>
-              <th>Fat/SNF</th>
-              <th>Revenue</th>
-              <th>Action</th>
+              <th class="text-nowrap" style="min-width: 95px;">Date</th>
+              <th class="text-nowrap" style="min-width: 130px;">Animal</th>
+              <th class="text-nowrap" style="min-width: 100px;">M + E (L)</th>
+              <th class="text-nowrap" style="min-width: 100px;">Fat / SNF</th>
+              <th class="text-nowrap" style="min-width: 110px;">Revenue</th>
+              <th class="text-center text-nowrap" style="min-width: 70px;">Action</th>
             </tr>
           </thead>
           <tbody id="milkLogsTableBody">
@@ -109,7 +109,7 @@
 <!-- Breeding & Insemination Records Row -->
 <div class="row g-3 mb-3">
   <div class="col-12">
-    <div class="card card-custom p-3 bg-white">
+    <div class="card card-custom p-3">
       <div class="card-header-clean px-0 pt-0">
         <span><i class="bi bi-heart-pulse-fill text-danger me-2"></i><span>Breeding & Artificial Insemination History</span></span>
         <button class="header-btn" data-bs-toggle="modal" data-bs-target="#breedingModal" onclick="resetBreedingModal()">
@@ -143,7 +143,7 @@
 <!-- Vaccination Calendar -->
 <div class="row g-3">
   <div class="col-12">
-    <div class="card card-custom p-3 bg-white">
+    <div class="card card-custom p-3">
       <div class="card-header-clean px-0 pt-0">
         <span><i class="bi bi-shield-check text-danger me-2"></i><span data-i18n="vaccination_title">Tamil Nadu Veterinary Vaccination Calendar</span></span>
       </div>

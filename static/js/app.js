@@ -1318,15 +1318,41 @@ function resetTxnModal() {
 }
 
 function renderExpenseChart(expensesByCategory) {
+  const container = document.getElementById("expenseChartContainer");
   const canvas = document.getElementById("expenseChart");
   if (!canvas) return;
 
-  const labels = Object.keys(expensesByCategory);
-  const data = Object.values(expensesByCategory);
+  const labels = Object.keys(expensesByCategory || {});
+  const data = Object.values(expensesByCategory || {});
+  const total = data.reduce((acc, v) => acc + (Number(v) || 0), 0);
 
   if (window.UzhavanApp.charts["expense"]) {
     window.UzhavanApp.charts["expense"].destroy();
+    window.UzhavanApp.charts["expense"] = null;
   }
+
+  // Handle empty state gracefully
+  const existingEmpty = container ? container.querySelector(".empty-chart-msg") : null;
+  if (existingEmpty) existingEmpty.remove();
+
+  if (labels.length === 0 || total === 0) {
+    canvas.style.display = "none";
+    if (container) {
+      const msg = document.createElement("div");
+      msg.className = "empty-chart-msg text-center py-4 text-muted";
+      msg.innerHTML = `
+        <i class="bi bi-pie-chart fs-1 text-secondary opacity-50 d-block mb-2"></i>
+        <div class="fw-bold small">No Expense Outflows Recorded Yet</div>
+        <div class="small mt-1 opacity-75">Record operational farm expenses (fertilizer, diesel, wages, feeds) to visualize category breakdown.</div>
+      `;
+      container.appendChild(msg);
+    }
+    return;
+  }
+
+  canvas.style.display = "block";
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+  const textColor = isDark ? "#94a3b8" : "#475569";
 
   const ctx = canvas.getContext("2d");
   window.UzhavanApp.charts["expense"] = new Chart(ctx, {
@@ -1336,16 +1362,24 @@ function renderExpenseChart(expensesByCategory) {
       datasets: [{
         data: data,
         backgroundColor: [
-          "#15803d", "#0284c7", "#d97706", "#dc2626",
+          "#10b981", "#0284c7", "#f59e0b", "#ef4444",
           "#8b5cf6", "#ec4899", "#14b8a6", "#64748b"
-        ]
+        ],
+        borderWidth: isDark ? 2 : 1,
+        borderColor: isDark ? "#151e32" : "#ffffff"
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { position: "bottom" }
+        legend: {
+          position: "bottom",
+          labels: {
+            color: textColor,
+            font: { family: "'Inter', sans-serif", size: 12 }
+          }
+        }
       }
     }
   });

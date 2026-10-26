@@ -254,6 +254,11 @@ function setLanguage(lang) {
     body: JSON.stringify({ language: lang })
   }).catch(() => {});
 
+  const profileBadge = document.getElementById("profileLangBadge");
+  if (profileBadge) {
+    profileBadge.innerHTML = lang === "en" ? "🇬🇧 English &rarr; தமிழ்" : "🇮🇳 தமிழ் &rarr; English";
+  }
+
   const btn = document.getElementById("langToggleBtn");
   if (btn) {
     btn.innerHTML = lang === "en" ? "🇮🇳 தமிழ்" : "🇬🇧 English";
