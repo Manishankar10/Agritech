@@ -1,13 +1,18 @@
 import os
 from functools import wraps
 from datetime import datetime, date
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash, send_from_directory
 import db_store
 import seed_manager
 from services import mandi_service, weather_service, breeding_engine, schemes_service
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "uzhavan-farm-secret-key-2026-auth")
+
+@app.route("/favicon.ico")
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, "static"),
+                               "favicon.ico", mimetype="image/vnd.microsoft.icon")
 
 # Initialize seed data
 try:
