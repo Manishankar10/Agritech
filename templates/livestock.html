@@ -42,41 +42,11 @@
   </div>
 </div>
 
-<!-- Vertical Layout: Gestation Calculator & Milk Yield Logs -->
+<!-- Recent Milk Yield Logs (Full Width) -->
 <div class="row g-3 mb-3">
-  <!-- 1. Gestation & Milestone Calculator (Full Width) -->
   <div class="col-12">
     <div class="card card-custom p-3">
-      <div class="card-header-clean px-0 pt-0">
-        <span class="fw-bold"><i class="bi bi-calculator text-success me-2"></i><span data-i18n="breeding_calc_title">Gestation & Milestone Calculator</span></span>
-      </div>
-      <p class="small text-muted mb-3">Preview gestation countdown, PD check, and dry-off dates dynamically</p>
-
-      <div class="row g-2 mb-3">
-        <div class="col-12 col-md-6">
-          <label class="form-label small fw-bold text-muted" data-i18n="species">Species</label>
-          <select id="calcSpecies" class="form-select" onchange="runLiveReproductionCalc()">
-            <option value="cow">Cow / Cattle (283 Days)</option>
-            <option value="buffalo">Buffalo (310 Days)</option>
-            <option value="goat">Goat / Sheep (150 Days)</option>
-          </select>
-        </div>
-        <div class="col-12 col-md-6">
-          <label class="form-label small fw-bold text-muted">Service / Mating Date</label>
-          <input type="date" id="calcDate" class="form-control" onchange="runLiveReproductionCalc()">
-        </div>
-      </div>
-
-      <div id="calcResults" class="p-3 rounded box-subtle">
-        <div class="small text-muted text-center py-2">Select a service date above to preview pregnancy milestones.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 2. Recent Milk Yield Logs (Full Width for Spacious Table Layout) -->
-  <div class="col-12">
-    <div class="card card-custom p-3">
-      <div class="card-header-clean px-0 pt-0">
+      <div class="card-header-clean px-0 pt-0 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
         <span class="fw-bold"><i class="bi bi-droplet-half text-primary me-2"></i><span data-i18n="milk_log_title">Recent Milk Yield Logs</span></span>
         <button class="header-btn header-btn-primary" data-bs-toggle="modal" data-bs-target="#milkModal" onclick="resetMilkModal()">
           <i class="bi bi-plus-lg me-1"></i> Quick Log
@@ -110,13 +80,13 @@
 <div class="row g-3 mb-3">
   <div class="col-12">
     <div class="card card-custom p-3">
-      <div class="card-header-clean px-0 pt-0">
+      <div class="card-header-clean px-0 pt-0 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
         <span><i class="bi bi-heart-pulse-fill text-danger me-2"></i><span>Breeding & Artificial Insemination History</span></span>
         <button class="header-btn" data-bs-toggle="modal" data-bs-target="#breedingModal" onclick="resetBreedingModal()">
           + Record AI / Breed
         </button>
       </div>
-      <div class="table-responsive">
+      <div class="table-responsive mt-2">
         <table class="table table-hover align-middle small mb-0">
           <thead>
             <tr>
@@ -133,32 +103,6 @@
             <tr>
               <td colspan="7" class="text-center py-3 text-muted">Loading breeding records...</td>
             </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Vaccination Calendar -->
-<div class="row g-3">
-  <div class="col-12">
-    <div class="card card-custom p-3">
-      <div class="card-header-clean px-0 pt-0">
-        <span><i class="bi bi-shield-check text-danger me-2"></i><span data-i18n="vaccination_title">Tamil Nadu Veterinary Vaccination Calendar</span></span>
-      </div>
-      <div class="table-responsive">
-        <table class="table table-hover align-middle small mb-0">
-          <thead>
-            <tr>
-              <th>Disease (நோய்)</th>
-              <th>Species</th>
-              <th>Recommended Frequency</th>
-              <th>Veterinary Guidelines</th>
-            </tr>
-          </thead>
-          <tbody id="vaccineTableBody">
-            <tr><td colspan="4" class="text-center py-3">Loading vaccine schedule...</td></tr>
           </tbody>
         </table>
       </div>
@@ -374,116 +318,12 @@
 
 {% block scripts %}
 <script>
-  async function runLiveReproductionCalc() {
-    const species = document.getElementById("calcSpecies").value;
-    const dateVal = document.getElementById("calcDate").value;
-    if (!dateVal) return;
-
-    try {
-      const res = await fetch(`/api/breeding/calculate?species=${species}&date=${dateVal}`);
-      const data = await res.json();
-
-      let html = `
-        <div class="row g-2">
-          <div class="col-6">
-            <span class="text-secondary small">Next Heat Watch (~21d):</span>
-            <div class="fw-bold text-dark mt-1">${data.next_heat_check}</div>
-          </div>
-          ${data.pd_check_date ? `
-            <div class="col-6">
-              <span class="text-secondary small">PD Check (~60d):</span>
-              <div class="fw-bold text-warning mt-1">${data.pd_check_date}</div>
-            </div>
-          ` : ""}
-          ${data.dry_off_date ? `
-            <div class="col-6 mt-2">
-              <span class="text-secondary small">Dry-off Date (-60d):</span>
-              <div class="fw-bold text-danger mt-1">${data.dry_off_date}</div>
-            </div>
-          ` : ""}
-          <div class="col-6 mt-2">
-            <span class="text-secondary small">Expected Delivery:</span>
-            <div class="fw-bold text-success mt-1">${data.expected_calving_date || data.expected_kidding_date}</div>
-          </div>
-          <div class="col-12 mt-2 pt-2 border-top">
-            <div class="small fw-bold text-success">${currentLang === "ta" ? data.stage_ta : data.stage}</div>
-            <div class="small text-muted">Total Gestation: ${data.gestation_days_total} days &bull; Due in: ${data.days_remaining} days</div>
-          </div>
-        </div>
-      `;
-      document.getElementById("calcResults").innerHTML = html;
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  async function loadMilkLogs() {
-    const tbody = document.getElementById("milkLogsTableBody");
-    if (!tbody) return;
-
-    try {
-      const res = await fetch("/api/milk");
-      const logs = await res.json();
-
-      if (!logs || logs.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-muted">No milk logs recorded yet.</td></tr>`;
-        return;
-      }
-
-      let rows = "";
-      logs.slice(0, 7).forEach(l => {
-        rows += `
-          <tr>
-            <td>${l.date}</td>
-            <td><strong>${l.animal_tag || l.animal_id}</strong></td>
-            <td>${l.total_liters} L <span class="text-muted small">(${l.morning_liters}M / ${l.evening_liters}E)</span></td>
-            <td>${l.fat_pct || "-"}% / ${l.snf_pct || "-"}%</td>
-            <td class="text-success fw-bold">₹${parseFloat(l.total_amount || 0).toLocaleString("en-IN")}</td>
-          </tr>
-        `;
-      });
-      tbody.innerHTML = rows;
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  async function loadVaccineCalendar() {
-    const tbody = document.getElementById("vaccineTableBody");
-    if (!tbody) return;
-
-    try {
-      const res = await fetch("/api/vaccinations");
-      const vaxes = await res.json();
-
-      let rows = "";
-      vaxes.forEach(v => {
-        const sched = currentLang === "ta" ? (v.schedule_ta || v.schedule) : v.schedule;
-        rows += `
-          <tr>
-            <td><strong class="text-dark">${v.disease}</strong></td>
-            <td><span class="badge-clean text-uppercase">${v.species.join(", ")}</span></td>
-            <td><span class="text-primary fw-bold">${sched}</span></td>
-            <td class="text-muted">${v.notes}</td>
-          </tr>
-        `;
-      });
-      tbody.innerHTML = rows;
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
   document.addEventListener("DOMContentLoaded", () => {
-    const today = new Date().toISOString().split("T")[0];
-    const calcDate = document.getElementById("calcDate");
-    if (calcDate) {
-      calcDate.value = today;
-      runLiveReproductionCalc();
-    }
     loadLivestock();
     loadMilkLogs();
-    loadVaccineCalendar();
+    if (typeof loadBreedingRecords === "function") {
+      loadBreedingRecords();
+    }
   });
 </script>
 {% endblock %}
