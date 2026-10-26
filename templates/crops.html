@@ -22,6 +22,31 @@
   </div>
 </div>
 
+<!-- Crop Economics KPI Summary Strip -->
+<div class="row g-2 g-md-3 mb-3">
+  <div class="col-4">
+    <div class="kpi-card h-100 p-2 p-md-3">
+      <div class="kpi-label text-muted small" style="font-size: 0.75rem;">Cultivation Cost (செலவு)</div>
+      <div class="kpi-value text-danger mt-1 fs-6 fs-md-5 fw-bold" id="cropTotalCost">₹--</div>
+      <div class="kpi-subtext small d-none d-sm-block">Inputs, Labor & Mach.</div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="kpi-card h-100 p-2 p-md-3">
+      <div class="kpi-label text-muted small" style="font-size: 0.75rem;">Harvest Returns (வரவு)</div>
+      <div class="kpi-value text-primary mt-1 fs-6 fs-md-5 fw-bold" id="cropTotalReturn">₹--</div>
+      <div class="kpi-subtext small d-none d-sm-block">Produce Sales & Yield</div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="kpi-card h-100 p-2 p-md-3">
+      <div class="kpi-label text-muted small" style="font-size: 0.75rem;">Net Crop Margin (லாபம்)</div>
+      <div class="kpi-value text-success mt-1 fs-6 fs-md-5 fw-bold" id="cropNetProfit">₹--</div>
+      <div class="kpi-subtext small d-none d-sm-block">Crop Operating Surplus</div>
+    </div>
+  </div>
+</div>
+
 <!-- Registered Plots Section -->
 <div class="row g-2 mb-3">
   <div class="col-12">
@@ -233,6 +258,312 @@
           <button type="submit" class="btn btn-sm btn-success" id="cropSubmitBtn" data-i18n="save_btn">Save Planting</button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- Financial Transaction Modal (For logging costs & sales directly against crops) -->
+<div class="modal fade" id="txnModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow">
+      <form id="txnForm">
+        <div class="modal-header bg-light border-bottom py-3">
+          <div class="d-flex align-items-center gap-2">
+            <div class="brand-icon-box" style="width: 32px; height: 32px; font-size: 1rem;">
+              <i class="bi bi-cash-stack"></i>
+            </div>
+            <div>
+              <h6 class="modal-title fw-bold mb-0 text-dark" id="txnModalTitle" data-i18n="add_txn_btn">Record Transaction</h6>
+              <div class="small text-muted">Crop sales, farm inputs, labour & trade settlements</div>
+            </div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body p-4">
+          <!-- Linked Crop & Plot Allocation Row -->
+          <div class="row g-2 mb-3 p-2 rounded bg-body-tertiary border">
+            <div class="col-md-7">
+              <label class="form-label small fw-bold text-dark mb-1">
+                <i class="bi bi-flower2 text-success me-1"></i> <span data-i18n="linked_crop">Linked Crop / Cultivation</span>
+              </label>
+              <select class="form-select form-select-sm" name="crop_id" id="txnCropId" onchange="onTxnCropChange()">
+                <option value="">-- General / Farm Overhead (No specific crop) --</option>
+              </select>
+              <div class="form-text text-muted" style="font-size: 0.7rem;">
+                Assign expense or return directly to an active crop for Cost of Cultivation & P&L tracking
+              </div>
+            </div>
+            <div class="col-md-5">
+              <label class="form-label small fw-bold text-dark mb-1">
+                <i class="bi bi-geo-alt text-secondary me-1"></i> Farmland Plot
+              </label>
+              <select class="form-select form-select-sm" name="plot_id" id="txnPlotId">
+                <option value="">-- Farm General / No Plot --</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Type & Category Row -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-5">
+              <label class="form-label small fw-bold text-dark">Transaction Type</label>
+              <div class="d-flex gap-2">
+                <input type="radio" class="btn-check" name="type" id="txnTypeIncome" value="income" onchange="onTxnTypeChange('income')" checked>
+                <label class="btn btn-outline-success btn-sm flex-fill fw-bold py-2" for="txnTypeIncome">
+                  <i class="bi bi-plus-circle-fill me-1"></i> Income (Sales & Yield)
+                </label>
+
+                <input type="radio" class="btn-check" name="type" id="txnTypeExpense" value="expense" onchange="onTxnTypeChange('expense')">
+                <label class="btn btn-outline-danger btn-sm flex-fill fw-bold py-2" for="txnTypeExpense">
+                  <i class="bi bi-dash-circle-fill me-1"></i> Expense (Farm Costs)
+                </label>
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label small fw-bold text-dark" data-i18n="category">Category</label>
+              <select class="form-select" name="category" id="txnCategorySelect" onchange="onTxnCategorySelectChange()">
+                <!-- Populated dynamically based on Income / Expense -->
+              </select>
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label small fw-bold text-dark" data-i18n="date">Date</label>
+              <input type="date" class="form-control" name="date" id="txnDate" required>
+            </div>
+          </div>
+
+          <!-- Structured Produce & Trade Settlement Section -->
+          <div class="card bg-light border p-3 mb-3 rounded-3" id="cropTradeSection">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="small fw-bold text-dark">
+                <i class="bi bi-basket2-fill text-success me-1"></i> Produce & Quantity Details
+              </span>
+              <span class="badge bg-white text-secondary border font-monospace small">Auto-Calculates Payout</span>
+            </div>
+
+            <div class="row g-2 mb-2">
+              <div class="col-md-5">
+                <label class="form-label small text-muted mb-1">Produce / Crop</label>
+                <input type="text" class="form-control form-control-sm" name="commodity" id="txnCommodity" list="commodityTradeList" placeholder="e.g. Tapioca / Kuchchi Kilangu">
+                <datalist id="commodityTradeList">
+                  <option value="Tapioca / Kuchchi Kilangu (மரவள்ளி)">
+                  <option value="Paddy / Rice (நெல்)">
+                  <option value="Mature Coconut (முழு மட்டைத் தேங்காய்)">
+                  <option value="De-husked Coconut (மட்டை உரித்த தேங்காய்)">
+                  <option value="Copra - Milling (ஆட்டு கொப்பரை)">
+                  <option value="Copra - Edible Ball (உருண்டை கொப்பரை)">
+                  <option value="Sugarcane (கரும்பு)">
+                  <option value="Turmeric (மஞ்சள்)">
+                  <option value="Banana (வாழை)">
+                  <option value="Small Onion (சின்ன வெங்காயம்)">
+                  <option value="Tomato (நாட்டுத் தக்காளி)">
+                  <option value="Groundnut (நிலக்கடலை)">
+                  <option value="Cotton (பருத்தி)">
+                  <option value="Cow Milk (பசும்பால்)">
+                </datalist>
+              </div>
+
+              <div class="col-md-3 col-6">
+                <label class="form-label small text-muted mb-1">Gross Quantity</label>
+                <input type="number" step="0.001" class="form-control form-control-sm fw-bold tabular-nums" name="quantity" id="txnQuantity" placeholder="e.g. 15.370" oninput="calculateTxnTotal()">
+              </div>
+
+              <div class="col-md-4 col-6">
+                <label class="form-label small text-muted mb-1">Unit</label>
+                <select class="form-select form-select-sm fw-medium" name="unit" id="txnUnit" onchange="calculateTxnTotal()">
+                  <option value="Tons">Tons (1,000 kg)</option>
+                  <option value="Quintals">Quintals (100 kg)</option>
+                  <option value="Bags (75kg)">Bags (75 kg)</option>
+                  <option value="Bags (50kg)">Bags (50 kg)</option>
+                  <option value="Kg">Kg</option>
+                  <option value="Pieces">Pieces / Coconuts</option>
+                  <option value="Liters">Liters</option>
+                  <option value="Bunches">Bunches</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row g-2 align-items-center mb-3">
+              <div class="col-md-6">
+                <label class="form-label small text-muted mb-1" id="txnRateLabel">Rate / Price per Ton (₹)</label>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text bg-white">₹</span>
+                  <input type="number" step="0.01" class="form-control fw-bold tabular-nums" name="rate_per_unit" id="txnRate" placeholder="e.g. 11600" oninput="calculateTxnTotal()">
+                </div>
+              </div>
+
+              <div class="col-md-6 pt-md-3">
+                <div class="small text-muted">
+                  <i class="bi bi-info-circle me-1 text-primary"></i> Gross value calculated on net weight
+                </div>
+              </div>
+            </div>
+
+            <!-- Deductions & Direct Expenses Card -->
+            <div class="card border p-2 mb-2 bg-white rounded-3 shadow-none">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="small fw-bold text-dark">
+                  <i class="bi bi-funnel text-warning me-1"></i> Weight Deductions & Charges Paid (Optional)
+                </span>
+                <span class="small text-muted font-monospace" style="font-size: 0.72rem;">Sand deduction & Labour/Freight</span>
+              </div>
+
+              <!-- Row 1: Weight Deductions -->
+              <div class="row g-2 mb-2">
+                <div class="col-md-4 col-6">
+                  <label class="form-label small text-muted mb-1">Sand / Tare Deduction (kg/Ton)</label>
+                  <div class="input-group input-group-sm">
+                    <input type="number" step="0.1" class="form-control tabular-nums" name="deduction_per_ton_kg" id="txnDeductionPerTon" placeholder="e.g. 50" oninput="calculateTxnTotal()">
+                    <span class="input-group-text">kg/T</span>
+                  </div>
+                </div>
+
+                <div class="col-md-4 col-6">
+                  <label class="form-label small text-muted mb-1">Flat Waste Deduction (kg)</label>
+                  <div class="input-group input-group-sm">
+                    <input type="number" step="0.1" class="form-control tabular-nums" name="deduction_flat_kg" id="txnDeductionFlat" placeholder="0" oninput="calculateTxnTotal()">
+                    <span class="input-group-text">kg</span>
+                  </div>
+                </div>
+
+                <div class="col-md-4 col-12">
+                  <label class="form-label small text-muted mb-1">Net Billable Weight</label>
+                  <div class="input-group input-group-sm">
+                    <input type="text" class="form-control bg-light fw-bold tabular-nums text-success" name="net_quantity" id="txnNetQuantity" placeholder="0.00" readonly>
+                    <span class="input-group-text" id="txnNetUnitLabel">Tons</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Row 2: Charges / Expenses Paid -->
+              <div class="row g-2 pt-2 border-top">
+                <div class="col-md-4 col-6">
+                  <label class="form-label small text-muted mb-1">Harvest / Labour Paid (₹)</label>
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">₹</span>
+                    <input type="number" step="0.01" class="form-control tabular-nums" name="harvest_charges" id="txnHarvestCharges" placeholder="0.00" oninput="calculateTxnTotal()">
+                  </div>
+                </div>
+
+                <div class="col-md-4 col-6">
+                  <label class="form-label small text-muted mb-1">Transport / Freight (₹)</label>
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">₹</span>
+                    <input type="number" step="0.01" class="form-control tabular-nums" name="transport_charges" id="txnTransportCharges" placeholder="0.00" oninput="calculateTxnTotal()">
+                  </div>
+                </div>
+
+                <div class="col-md-4 col-12">
+                  <label class="form-label small text-muted mb-1">Weighbridge / Commission (₹)</label>
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">₹</span>
+                    <input type="number" step="0.01" class="form-control tabular-nums" name="other_charges" id="txnOtherCharges" placeholder="0.00" oninput="calculateTxnTotal()">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Settlement Live Summary Banner -->
+            <div id="txnCalcPreview" class="border rounded p-2 mb-2 bg-white small font-monospace">
+              <div class="text-muted d-flex align-items-center">
+                <i class="bi bi-calculator me-1 text-primary"></i> Enter Quantity & Rate to auto-calculate settlement
+              </div>
+            </div>
+
+            <!-- Counterparty / Buyer Details -->
+            <div class="row g-2 mt-2 pt-2 border-top">
+              <div class="col-md-6">
+                <label class="form-label small text-muted mb-1">Buyer / Mill / Trader</label>
+                <input type="text" class="form-control form-control-sm" name="buyer" id="txnBuyer" placeholder="e.g. Salem Sago Factory / Trader Murugan">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small text-muted mb-1">Weighbridge Slip / Lorry #</label>
+                <input type="text" class="form-control form-control-sm" name="slip_no" id="txnSlipNo" placeholder="e.g. Slip #4892 • TN-28-AB-1234">
+              </div>
+            </div>
+          </div>
+
+          <!-- Total Amount Row -->
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label class="form-label small fw-bold text-dark mb-0" data-i18n="amount">Total Net Amount (₹) <span class="text-danger">*</span></label>
+              <span class="small text-muted">Auto-calculated net payout (or enter manual flat sum)</span>
+            </div>
+            <div class="input-group input-group-lg">
+              <span class="input-group-text bg-light fw-bold text-dark">₹</span>
+              <input type="number" step="0.01" class="form-control fw-bold text-success tabular-nums" name="amount" id="txnAmount" placeholder="0.00" required>
+            </div>
+          </div>
+
+          <!-- Notes / Description -->
+          <div class="mb-0">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label class="form-label small fw-bold text-dark mb-0">Notes & Settlement Terms</label>
+              <span class="small text-muted">Press Enter for new line</span>
+            </div>
+            <textarea class="form-control" name="desc" id="txnDesc" rows="3" placeholder="Enter terms of payment, advance received, starch score, vehicle driver contact, etc."></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer bg-light border-top py-2 d-flex justify-content-between">
+          <button type="button" class="btn btn-sm btn-light border px-3" data-bs-dismiss="modal" data-i18n="cancel_btn">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-success px-4 fw-bold" id="txnSubmitBtn" data-i18n="save_btn">
+            <i class="bi bi-check-circle-fill me-1"></i> Save Transaction
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Crop Ledger Details Modal -->
+<div class="modal fade" id="cropLedgerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-light border-bottom py-3">
+        <div class="d-flex align-items-center gap-2">
+          <div class="brand-icon-box" style="width: 32px; height: 32px; font-size: 1rem;">🌱</div>
+          <div>
+            <h6 class="modal-title fw-bold mb-0 text-dark" id="cropLedgerModalTitle">Crop Ledger</h6>
+            <div class="small text-muted" id="cropLedgerModalSubtitle">Detailed Cost of Cultivation & Harvest Returns</div>
+          </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-3">
+        <!-- Quick Stats Cards Row -->
+        <div class="row g-2 mb-3" id="cropLedgerStatsRow">
+          <!-- Populated dynamically: Cost, Revenue, Net Profit, ROI -->
+        </div>
+
+        <!-- Ledger Table -->
+        <div class="table-responsive">
+          <table class="table table-hover align-middle small mb-0">
+            <thead>
+              <tr>
+                <th style="min-width: 90px;">Date</th>
+                <th style="min-width: 75px;">Type</th>
+                <th style="min-width: 130px;">Category</th>
+                <th style="min-width: 220px;">Details</th>
+                <th class="text-end" style="min-width: 100px;">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="cropLedgerTableBody">
+              <tr>
+                <td colspan="5" class="text-center py-4 text-muted">Loading ledger transactions...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer bg-light border-top py-2 d-flex justify-content-between">
+        <div class="d-flex gap-2" id="cropLedgerModalActions">
+          <!-- Populated dynamically with + Cost and + Sale buttons -->
+        </div>
+        <button type="button" class="btn btn-sm btn-light border px-3" data-bs-dismiss="modal">Close</button>
+      </div>
     </div>
   </div>
 </div>

@@ -178,6 +178,29 @@
         </div>
 
         <div class="modal-body p-4">
+          <!-- Linked Crop & Plot Allocation Row -->
+          <div class="row g-2 mb-3 p-2 rounded bg-body-tertiary border">
+            <div class="col-md-7">
+              <label class="form-label small fw-bold text-dark mb-1">
+                <i class="bi bi-flower2 text-success me-1"></i> <span data-i18n="linked_crop">Linked Crop / Cultivation</span>
+              </label>
+              <select class="form-select form-select-sm" name="crop_id" id="txnCropId" onchange="onTxnCropChange()">
+                <option value="">-- General / Farm Overhead (No specific crop) --</option>
+              </select>
+              <div class="form-text text-muted" style="font-size: 0.7rem;">
+                Assign expense or return to an active crop for Cost of Cultivation & P&L tracking
+              </div>
+            </div>
+            <div class="col-md-5">
+              <label class="form-label small fw-bold text-dark mb-1">
+                <i class="bi bi-geo-alt text-secondary me-1"></i> Farmland Plot
+              </label>
+              <select class="form-select form-select-sm" name="plot_id" id="txnPlotId">
+                <option value="">-- Farm General / No Plot --</option>
+              </select>
+            </div>
+          </div>
+
           <!-- Type & Category Row -->
           <div class="row g-3 mb-3">
             <div class="col-md-5">

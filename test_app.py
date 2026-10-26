@@ -304,6 +304,112 @@ class TestUzhavanDesk(unittest.TestCase):
         stats = json.loads(stats_resp.data)
         self.assertTrue(stats["total_income"] >= 133400.0)
 
+    def test_crop_expense_and_profit_tracking(self):
+        """Verifies storing expenses and profits against specific active crops, grouping them, and separate overhead additions."""
+        self.client.post("/login", data={"action": "demo"}, follow_redirects=True)
+
+        # 1. Create a plot and active crop: Kuchchi Kilangu
+        plot_resp = self.client.post("/api/plots", json={
+            "name": "New Coconut Plot",
+            "area_acres": 1.0,
+            "soil_type": "Red Loam",
+            "water_source": "Drip Borewell"
+        })
+        self.assertEqual(plot_resp.status_code, 201)
+        plot_id = json.loads(plot_resp.data)["id"]
+
+        crop_resp = self.client.post("/api/crops", json={
+            "plot_id": plot_id,
+            "crop_name": "Kuchchi",
+            "variety": "4",
+            "season": "Kuruvai (குறுவை)",
+            "sowing_date": "2026-10-25",
+            "area_cultivated_acres": 1.0,
+            "stage": "Tillering & Vegetative (தூர்கட்டும் பருவம்)",
+            "status": "active"
+        })
+        self.assertEqual(crop_resp.status_code, 201)
+        crop_id = json.loads(crop_resp.data)["id"]
+
+        # 2. Record an expense directly against this crop (Fertilizer: 3200)
+        exp_resp = self.client.post("/api/financials", json={
+            "type": "expense",
+            "crop_id": crop_id,
+            "category": "Fertilizer & Manure (உரம் & எரு)",
+            "amount": 3200.0,
+            "date": "2026-10-25",
+            "desc": "Basal DAP & Organic compost for Kuchchi"
+        })
+        self.assertEqual(exp_resp.status_code, 201)
+        exp_item = json.loads(exp_resp.data)
+        self.assertEqual(exp_item["crop_id"], crop_id)
+        self.assertEqual(exp_item["crop_name"], "Kuchchi")
+
+        # 3. Record a separate general overhead expense (Machinery repair: 1500) with NO crop_id
+        gen_resp = self.client.post("/api/financials", json={
+            "type": "expense",
+            "crop_id": "",
+            "category": "Equipment Maintenance (கருவிகள் பழுதுபார்ப்பு)",
+            "amount": 1500.0,
+            "date": "2026-10-25",
+            "desc": "Borewell starter panel replacement"
+        })
+        self.assertEqual(gen_resp.status_code, 201)
+
+        # 4. Record a harvest sales return directly against this crop (Yield return: 18500)
+        inc_resp = self.client.post("/api/financials", json={
+            "type": "income",
+            "crop_id": crop_id,
+            "category": "Tapioca / Kuchchi Kilangu (மரவள்ளிக் கிழங்கு / குச்சிக் கிழங்கு)",
+            "commodity": "Kuchchi",
+            "amount": 18500.0,
+            "date": "2026-10-26",
+            "quantity": 2.0,
+            "unit": "Tons",
+            "rate_per_unit": 9250.0,
+            "desc": "Harvest batch 1 dispatch"
+        })
+        self.assertEqual(inc_resp.status_code, 201)
+
+        # 5. Verify /api/crops returns enriched crop metrics: total_expense, total_income, net_profit
+        crops_resp = self.client.get("/api/crops")
+        self.assertEqual(crops_resp.status_code, 200)
+        crops_list = json.loads(crops_resp.data)
+        kuchchi_crop = next((c for c in crops_list if c["id"] == crop_id), None)
+        self.assertIsNotNone(kuchchi_crop)
+        self.assertEqual(kuchchi_crop["total_expense"], 3200.0)
+        self.assertEqual(kuchchi_crop["total_income"], 18500.0)
+        self.assertEqual(kuchchi_crop["net_profit"], 15300.0)
+        self.assertEqual(kuchchi_crop["expense_count"], 1)
+        self.assertEqual(kuchchi_crop["income_count"], 1)
+
+        # 6. Verify dedicated /api/crops/<crop_id>/financials endpoint returns itemized ledger
+        ledger_resp = self.client.get(f"/api/crops/{crop_id}/financials")
+        self.assertEqual(ledger_resp.status_code, 200)
+        ledger_data = json.loads(ledger_resp.data)
+        self.assertEqual(ledger_data["total_expense"], 3200.0)
+        self.assertEqual(ledger_data["total_income"], 18500.0)
+        self.assertEqual(ledger_data["net_profit"], 15300.0)
+        self.assertEqual(len(ledger_data["transactions"]), 2)
+
+        # 7. Verify /api/financials/stats includes crop_summary and general_summary
+        stats_resp = self.client.get("/api/financials/stats")
+        self.assertEqual(stats_resp.status_code, 200)
+        stats_data = json.loads(stats_resp.data)
+        self.assertIn("crop_summary", stats_data)
+        self.assertIn("general_summary", stats_data)
+        summary_crop = next((cs for cs in stats_data["crop_summary"] if cs["id"] == crop_id), None)
+        self.assertIsNotNone(summary_crop)
+        self.assertEqual(summary_crop["net_profit"], 15300.0)
+        self.assertTrue(stats_data["general_summary"]["total_expense"] >= 1500.0)
+
+        # 8. Clean up created items
+        self.client.delete(f"/api/crops/{crop_id}")
+        self.client.delete(f"/api/plots/{plot_id}")
+        self.client.delete(f"/api/financials/{exp_item['id']}")
+        self.client.delete(f"/api/financials/{json.loads(gen_resp.data)['id']}")
+        self.client.delete(f"/api/financials/{json.loads(inc_resp.data)['id']}")
+
     def test_edit_endpoints_everywhere(self):
         """Verifies edit (PUT) functionality for plots, crops, livestock, breeding, milk, and financial transactions."""
         self.client.post("/login", data={"action": "demo"}, follow_redirects=True)

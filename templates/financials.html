@@ -54,16 +54,77 @@
   </div>
 </div>
 
+<!-- Crop-Wise Profitability & Cost of Cultivation Section -->
+<div class="row g-3 mb-3">
+  <div class="col-12">
+    <div class="card card-custom p-3">
+      <div class="card-header-clean px-0 pt-0 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+        <div>
+          <span class="fw-bold fs-6" data-i18n="crop_pnl_title">Crop-Wise Profitability & Cost of Cultivation</span>
+          <div class="text-secondary small mt-1" data-i18n="crop_pnl_subtitle">Track direct cultivation expenses, harvest sales returns, and net margins per crop</div>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="/crops" class="header-btn" title="Manage Crops">
+            <i class="bi bi-flower2 text-success me-1"></i> Crops & Plots
+          </a>
+          <button class="header-btn header-btn-primary" data-bs-toggle="modal" data-bs-target="#txnModal" onclick="resetTxnModal()">
+            <i class="bi bi-plus-lg me-1"></i> Add Transaction
+          </button>
+        </div>
+      </div>
+
+      <div class="table-responsive mt-3">
+        <table class="table table-hover align-middle small mb-0">
+          <thead>
+            <tr>
+              <th style="min-width: 170px;">Crop & Variety</th>
+              <th style="min-width: 140px;">Plot & Area</th>
+              <th style="min-width: 130px;">Stage & Status</th>
+              <th class="text-end text-nowrap" style="min-width: 110px;">Total Cost (செலவு)</th>
+              <th class="text-end text-nowrap" style="min-width: 110px;">Total Return (வரவு)</th>
+              <th class="text-end text-nowrap" style="min-width: 110px;">Net Margin</th>
+              <th class="text-center text-nowrap" style="min-width: 70px;">ROI</th>
+              <th class="text-center text-nowrap" style="min-width: 130px;">Quick Actions</th>
+            </tr>
+          </thead>
+          <tbody id="cropProfitabilityBody">
+            <tr>
+              <td colspan="8" class="text-center py-4 text-muted">
+                <div class="spinner-border spinner-border-sm text-success" role="status"></div> Loading crop profitability...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Vertical Layout: Transactions Ledger (Full Width) & Expense Breakdown -->
 <div class="row g-3 mb-3">
   <!-- 1. Recent Farm Transactions Ledger (Full Width for Maximum Readability) -->
   <div class="col-12">
     <div class="card card-custom p-3">
-      <div class="card-header-clean px-0 pt-0">
+      <div class="card-header-clean px-0 pt-0 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
         <span class="fw-bold fs-6" data-i18n="recent_txns">Recent Farm Ledger Transactions</span>
-        <button class="header-btn header-btn-primary" data-bs-toggle="modal" data-bs-target="#txnModal" onclick="resetTxnModal()">
-          <i class="bi bi-plus-lg me-1"></i> Add Entry
-        </button>
+        <div class="d-flex flex-wrap gap-2 align-items-center w-100 w-md-auto">
+          <!-- Filter by Crop -->
+          <select id="txnCropFilter" class="form-select form-select-sm" style="min-width: 160px; max-width: 220px;" onchange="filterTxnsTable()">
+            <option value="all">🌱 All Crops & General</option>
+            <option value="general">🚜 General Overhead Only</option>
+          </select>
+          <!-- Filter by Type -->
+          <select id="txnTypeFilter" class="form-select form-select-sm" style="width: 120px;" onchange="filterTxnsTable()">
+            <option value="all">All Types</option>
+            <option value="expense">Expenses (-)</option>
+            <option value="income">Income (+)</option>
+          </select>
+          <!-- Search -->
+          <input type="text" id="txnSearchInput" class="form-control form-control-sm" placeholder="Search..." style="max-width: 140px;" oninput="filterTxnsTable()">
+          <button class="header-btn header-btn-primary" data-bs-toggle="modal" data-bs-target="#txnModal" onclick="resetTxnModal()">
+            <i class="bi bi-plus-lg me-1"></i> Add Entry
+          </button>
+        </div>
       </div>
 
       <div class="table-responsive mt-2">
@@ -73,14 +134,15 @@
               <th data-i18n="date" class="text-nowrap" style="min-width: 95px;">Date</th>
               <th class="text-nowrap" style="min-width: 80px;">Type</th>
               <th data-i18n="category" style="min-width: 140px;">Category</th>
-              <th style="min-width: 260px;">Description & Produce Details</th>
+              <th style="min-width: 140px;">Allocation / Crop</th>
+              <th style="min-width: 240px;">Description & Produce Details</th>
               <th data-i18n="amount" class="text-end text-nowrap" style="min-width: 120px;">Amount</th>
               <th class="text-center text-nowrap" style="min-width: 70px;">Action</th>
             </tr>
           </thead>
           <tbody id="txnsTableBody">
             <tr>
-              <td colspan="6" class="text-center py-4 text-muted">Loading transactions...</td>
+              <td colspan="7" class="text-center py-4 text-muted">Loading transactions...</td>
             </tr>
           </tbody>
         </table>
@@ -120,6 +182,29 @@
         </div>
 
         <div class="modal-body p-4">
+          <!-- Linked Crop & Plot Allocation Row -->
+          <div class="row g-2 mb-3 p-2 rounded bg-body-tertiary border">
+            <div class="col-md-7">
+              <label class="form-label small fw-bold text-dark mb-1">
+                <i class="bi bi-flower2 text-success me-1"></i> <span data-i18n="linked_crop">Linked Crop / Cultivation</span>
+              </label>
+              <select class="form-select form-select-sm" name="crop_id" id="txnCropId" onchange="onTxnCropChange()">
+                <option value="">-- General / Farm Overhead (No specific crop) --</option>
+              </select>
+              <div class="form-text text-muted" style="font-size: 0.7rem;">
+                Assign expense or return to an active crop to calculate Cost of Cultivation & Crop P&L
+              </div>
+            </div>
+            <div class="col-md-5">
+              <label class="form-label small fw-bold text-dark mb-1">
+                <i class="bi bi-geo-alt text-secondary me-1"></i> Farmland Plot
+              </label>
+              <select class="form-select form-select-sm" name="plot_id" id="txnPlotId">
+                <option value="">-- Farm General / No Plot --</option>
+              </select>
+            </div>
+          </div>
+
           <!-- Type & Category Row -->
           <div class="row g-3 mb-3">
             <div class="col-md-5">
@@ -333,6 +418,56 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- Crop Ledger Details Modal -->
+<div class="modal fade" id="cropLedgerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-light border-bottom py-3">
+        <div class="d-flex align-items-center gap-2">
+          <div class="brand-icon-box" style="width: 32px; height: 32px; font-size: 1rem;">🌱</div>
+          <div>
+            <h6 class="modal-title fw-bold mb-0 text-dark" id="cropLedgerModalTitle">Crop Ledger</h6>
+            <div class="small text-muted" id="cropLedgerModalSubtitle">Detailed Cost of Cultivation & Harvest Returns</div>
+          </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-3">
+        <!-- Quick Stats Cards Row -->
+        <div class="row g-2 mb-3" id="cropLedgerStatsRow">
+          <!-- Populated dynamically: Cost, Revenue, Net Profit, ROI -->
+        </div>
+
+        <!-- Ledger Table -->
+        <div class="table-responsive">
+          <table class="table table-hover align-middle small mb-0">
+            <thead>
+              <tr>
+                <th style="min-width: 90px;">Date</th>
+                <th style="min-width: 75px;">Type</th>
+                <th style="min-width: 130px;">Category</th>
+                <th style="min-width: 220px;">Details</th>
+                <th class="text-end" style="min-width: 100px;">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="cropLedgerTableBody">
+              <tr>
+                <td colspan="5" class="text-center py-4 text-muted">Loading ledger transactions...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer bg-light border-top py-2 d-flex justify-content-between">
+        <div class="d-flex gap-2" id="cropLedgerModalActions">
+          <!-- Populated dynamically with + Cost and + Sale buttons -->
+        </div>
+        <button type="button" class="btn btn-sm btn-light border px-3" data-bs-dismiss="modal">Close</button>
+      </div>
     </div>
   </div>
 </div>

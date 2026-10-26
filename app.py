@@ -359,11 +359,72 @@ def api_crops():
         return jsonify(item), 201
     
     crops = db_store.get_user_items("crops", uname)
-    plots = {p["id"]: p.get("name") for p in db_store.get_user_items("plots", uname)}
+    plots = {str(p["id"]): p.get("name") for p in db_store.get_user_items("plots", uname)}
+    txns = db_store.get_user_items("financials", uname)
+
     for c in crops:
-        if c.get("plot_id") in plots:
-            c["plot_name"] = plots[c["plot_id"]]
+        cid = str(c.get("id", ""))
+        if c.get("plot_id") and str(c.get("plot_id")) in plots:
+            c["plot_name"] = plots[str(c["plot_id"])]
+
+        # Collect transactions strictly assigned to this crop
+        crop_txns = [t for t in txns if str(t.get("crop_id") or "").strip() == cid]
+
+        total_exp = sum(float(t.get("amount", 0)) for t in crop_txns if t.get("type") == "expense")
+        total_inc = sum(float(t.get("amount", 0)) for t in crop_txns if t.get("type") == "income")
+        net = total_inc - total_exp
+
+        c["total_expense"] = round(total_exp, 2)
+        c["total_income"] = round(total_inc, 2)
+        c["net_profit"] = round(net, 2)
+        c["roi_percentage"] = round((net / total_exp * 100), 1) if total_exp > 0 else 0.0
+        c["expense_count"] = len([t for t in crop_txns if t.get("type") == "expense"])
+        c["income_count"] = len([t for t in crop_txns if t.get("type") == "income"])
+        c["transactions_count"] = len(crop_txns)
+
     return jsonify(crops)
+
+@app.route("/api/crops/<crop_id>/financials")
+@login_required
+def api_crop_financials(crop_id):
+    user = get_current_user()
+    uname = user["username"]
+    crops = db_store.get_user_items("crops", uname)
+    target_crop = next((c for c in crops if str(c.get("id")) == str(crop_id)), None)
+    if not target_crop:
+        return jsonify({"error": "Crop not found"}), 404
+
+    plots = {str(p["id"]): p.get("name") for p in db_store.get_user_items("plots", uname)}
+    target_crop["plot_name"] = plots.get(str(target_crop.get("plot_id")), "Plot")
+
+    txns = db_store.get_user_items("financials", uname)
+    cid = str(target_crop.get("id"))
+
+    matching = []
+    cat_expenses = {}
+    for t in txns:
+        if str(t.get("crop_id") or "").strip() == cid:
+            t["crop_name"] = target_crop.get("crop_name")
+            t["plot_name"] = target_crop.get("plot_name")
+            matching.append(t)
+            if t.get("type") == "expense":
+                cat = t.get("category", "General Expense")
+                cat_expenses[cat] = cat_expenses.get(cat, 0.0) + float(t.get("amount", 0))
+
+    matching.sort(key=lambda x: str(x.get("date", "")), reverse=True)
+    total_exp = sum(float(t.get("amount", 0)) for t in matching if t.get("type") == "expense")
+    total_inc = sum(float(t.get("amount", 0)) for t in matching if t.get("type") == "income")
+    net = total_inc - total_exp
+
+    return jsonify({
+        "crop": target_crop,
+        "transactions": matching,
+        "total_expense": round(total_exp, 2),
+        "total_income": round(total_inc, 2),
+        "net_profit": round(net, 2),
+        "roi_percentage": round((net / total_exp * 100), 1) if total_exp > 0 else 0.0,
+        "expenses_by_category": {k: round(v, 2) for k, v in cat_expenses.items()}
+    })
 
 @app.route("/api/crops/<crop_id>", methods=["DELETE", "PUT"])
 @login_required
@@ -591,11 +652,38 @@ def api_financials():
     if request.method == "POST":
         data = request.json or request.form.to_dict()
         _clean_financial_data(data)
+        
+        cid = str(data.get("crop_id") or "").strip()
+        if cid:
+            crops = db_store.get_user_items("crops", uname)
+            target_crop = next((c for c in crops if str(c.get("id")) == cid), None)
+            if target_crop:
+                data["crop_id"] = cid
+                data["crop_name"] = target_crop.get("crop_name")
+                if not data.get("plot_id") and target_crop.get("plot_id"):
+                    data["plot_id"] = target_crop.get("plot_id")
+        else:
+            data["crop_id"] = ""
+
         item = db_store.save_user_item("financials", data, uname)
         return jsonify(item), 201
 
     txns = db_store.get_user_items("financials", uname)
-    txns.sort(key=lambda x: x.get("date", ""), reverse=True)
+    crops_map = {str(c["id"]): c for c in db_store.get_user_items("crops", uname)}
+    plots_map = {str(p["id"]): p.get("name") for p in db_store.get_user_items("plots", uname)}
+
+    for t in txns:
+        cid = str(t.get("crop_id") or "").strip()
+        pid = str(t.get("plot_id") or "").strip()
+        if cid and cid in crops_map:
+            t["crop_name"] = crops_map[cid].get("crop_name")
+            if not t.get("plot_name"):
+                c_pid = str(crops_map[cid].get("plot_id") or "")
+                t["plot_name"] = plots_map.get(c_pid) or crops_map[cid].get("plot_name")
+        elif pid and pid in plots_map:
+            t["plot_name"] = plots_map[pid]
+
+    txns.sort(key=lambda x: str(x.get("date", "")), reverse=True)
     return jsonify(txns)
 
 @app.route("/api/financials/<item_id>", methods=["DELETE", "PUT"])
@@ -613,6 +701,17 @@ def api_modify_financial(item_id):
             existing.update(data)
             existing["id"] = item_id
             _clean_financial_data(existing)
+            cid = str(existing.get("crop_id") or "").strip()
+            if cid:
+                crops = db_store.get_user_items("crops", uname)
+                target_crop = next((c for c in crops if str(c.get("id")) == cid), None)
+                if target_crop:
+                    existing["crop_id"] = cid
+                    existing["crop_name"] = target_crop.get("crop_name")
+                    if not existing.get("plot_id") and target_crop.get("plot_id"):
+                        existing["plot_id"] = target_crop.get("plot_id")
+            else:
+                existing["crop_id"] = ""
             db_store.save_user_item("financials", existing, uname)
             return jsonify(existing)
         return jsonify({"error": "Transaction not found or unauthorized"}), 404
@@ -623,21 +722,84 @@ def api_financials_stats():
     user = get_current_user()
     uname = user["username"]
     txns = db_store.get_user_items("financials", uname)
+    crops = db_store.get_user_items("crops", uname)
+    plots_map = {str(p["id"]): p.get("name") for p in db_store.get_user_items("plots", uname)}
     
     cat_expenses = {}
     cat_income = {}
     total_exp = 0.0
     total_inc = 0.0
 
+    # Build crop mapping for fast lookup
+    crop_stats = {}
+    for c in crops:
+        cid = str(c.get("id"))
+        p_name = plots_map.get(str(c.get("plot_id")), c.get("plot_name") or "Plot")
+        crop_stats[cid] = {
+            "id": cid,
+            "crop_name": c.get("crop_name"),
+            "variety": c.get("variety"),
+            "season": c.get("season"),
+            "stage": c.get("stage"),
+            "status": c.get("status", "active"),
+            "plot_id": c.get("plot_id"),
+            "plot_name": p_name,
+            "area_acres": c.get("area_cultivated_acres", 0),
+            "sowing_date": c.get("sowing_date", ""),
+            "total_expense": 0.0,
+            "total_income": 0.0,
+            "net_profit": 0.0,
+            "roi_percentage": 0.0,
+            "expense_count": 0,
+            "income_count": 0,
+            "expenses_by_category": {}
+        }
+
+    general_exp = 0.0
+    general_inc = 0.0
+
     for t in txns:
         amt = float(t.get("amount", 0))
         cat = t.get("category", "General")
-        if t.get("type") == "expense":
+        is_exp = t.get("type") == "expense"
+        
+        if is_exp:
             total_exp += amt
             cat_expenses[cat] = cat_expenses.get(cat, 0.0) + amt
         else:
             total_inc += amt
             cat_income[cat] = cat_income.get(cat, 0.0) + amt
+
+        # Allocate strictly to linked crop, or general farm overhead if unallocated
+        cid = str(t.get("crop_id") or "").strip()
+        if cid and cid in crop_stats:
+            cs = crop_stats[cid]
+            if is_exp:
+                cs["total_expense"] += amt
+                cs["expense_count"] += 1
+                cs["expenses_by_category"][cat] = cs["expenses_by_category"].get(cat, 0.0) + amt
+            else:
+                cs["total_income"] += amt
+                cs["income_count"] += 1
+        else:
+            if is_exp:
+                general_exp += amt
+            else:
+                general_inc += amt
+
+    # Calculate net profit and ROI for each crop
+    crop_summary = []
+    for cid, cs in crop_stats.items():
+        cs["total_expense"] = round(cs["total_expense"], 2)
+        cs["total_income"] = round(cs["total_income"], 2)
+        net = cs["total_income"] - cs["total_expense"]
+        cs["net_profit"] = round(net, 2)
+        cs["roi_percentage"] = round((net / cs["total_expense"] * 100), 1) if cs["total_expense"] > 0 else 0.0
+        cs["expenses_by_category"] = {k: round(v, 2) for k, v in cs["expenses_by_category"].items()}
+        crop_summary.append(cs)
+
+    # Sort crops by active first, then sowing_date desc
+    crop_summary.sort(key=lambda x: (0 if x["status"] == "active" else 1, str(x.get("sowing_date", ""))), reverse=False)
 
     net = total_inc - total_exp
     roi = round((net / total_exp * 100), 1) if total_exp > 0 else 0.0
@@ -648,7 +810,13 @@ def api_financials_stats():
         "net_profit": round(net, 2),
         "roi_percentage": roi,
         "expenses_by_category": {k: round(v, 2) for k, v in cat_expenses.items()},
-        "income_by_category": {k: round(v, 2) for k, v in cat_income.items()}
+        "income_by_category": {k: round(v, 2) for k, v in cat_income.items()},
+        "crop_summary": crop_summary,
+        "general_summary": {
+            "total_expense": round(general_exp, 2),
+            "total_income": round(general_inc, 2),
+            "net_profit": round(general_inc - general_exp, 2)
+        }
     })
 
 # --- Location-Specific Weather & Advisories API ---

@@ -291,13 +291,42 @@ async function loadCropsAndPlots() {
       }
     }
 
-    // Render crops
+    // Render crops and update crop economics KPI strip
     if (cropsContainer) {
+      let totalCropsCost = 0;
+      let totalCropsReturn = 0;
+
+      crops.forEach(c => {
+        if (c.status === "active") {
+          totalCropsCost += (parseFloat(c.total_expense) || 0);
+          totalCropsReturn += (parseFloat(c.total_income) || 0);
+        }
+      });
+      const netCropsProfit = totalCropsReturn - totalCropsCost;
+
+      const costEl = document.getElementById("cropTotalCost");
+      const retEl = document.getElementById("cropTotalReturn");
+      const netEl = document.getElementById("cropNetProfit");
+      if (costEl) costEl.innerText = `₹${totalCropsCost.toLocaleString("en-IN")}`;
+      if (retEl) retEl.innerText = `₹${totalCropsReturn.toLocaleString("en-IN")}`;
+      if (netEl) {
+        netEl.innerText = `${netCropsProfit >= 0 ? '+' : ''}₹${netCropsProfit.toLocaleString("en-IN")}`;
+        netEl.className = netCropsProfit >= 0 ? "kpi-value text-success mt-1 fs-6 fs-md-5 fw-bold" : "kpi-value text-danger mt-1 fs-6 fs-md-5 fw-bold";
+      }
+
       if (crops.length === 0) {
         cropsContainer.innerHTML = `<div class="col-12 text-center py-4 text-muted">No crops currently planted. Click "Plant New Crop" to add one!</div>`;
       } else {
         let cHtml = "";
         crops.forEach(c => {
+          const exp = parseFloat(c.total_expense || 0);
+          const inc = parseFloat(c.total_income || 0);
+          const net = parseFloat(c.net_profit || 0);
+          const netBadgeClass = net >= 0 ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger";
+          const netSign = net >= 0 ? "+" : "";
+          const roiStr = exp > 0 ? `${c.roi_percentage}% ROI` : "0% ROI";
+          const safeCropName = (c.crop_name || "").replace(/'/g, "\\'");
+
           cHtml += `
             <div class="col-md-6 mb-4">
               <div class="card card-custom p-3 h-100 border-start border-4 border-success">
@@ -306,7 +335,7 @@ async function loadCropsAndPlots() {
                     <h5 class="fw-bold mb-0 text-success">${c.crop_name}</h5>
                     <span class="small text-muted">${c.variety} | ${c.season}</span>
                   </div>
-                  <span class="badge bg-success">${c.status}</span>
+                  <span class="badge ${c.status === 'active' ? 'bg-success' : 'bg-secondary'}">${c.status}</span>
                 </div>
                 <hr class="my-2">
                 <div class="small text-secondary mb-2">
@@ -318,15 +347,48 @@ async function loadCropsAndPlots() {
                 <div class="small text-muted mb-2">
                   <i class="bi bi-calendar-event"></i> Sown: ${c.sowing_date} | Harvest: ${c.expected_harvest || "TBD"}
                 </div>
+
+                <!-- Crop Financials & Cost of Cultivation Strip -->
+                <div class="p-2 rounded mb-2 border bg-body-tertiary">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="small fw-bold text-body"><i class="bi bi-wallet2 text-success me-1"></i>Cultivation Economics</span>
+                    <span class="badge ${netBadgeClass} fw-bold font-monospace">${netSign}₹${net.toLocaleString("en-IN")} Net (${roiStr})</span>
+                  </div>
+                  <div class="row g-1 text-center small">
+                    <div class="col-6">
+                      <div class="p-1 rounded bg-body border">
+                        <div class="text-muted" style="font-size: 0.7rem;">Cultivation Cost (செலவு)</div>
+                        <div class="fw-bold text-danger font-monospace">₹${exp.toLocaleString("en-IN")}</div>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="p-1 rounded bg-body border">
+                        <div class="text-muted" style="font-size: 0.7rem;">Sales Return (வரவு)</div>
+                        <div class="fw-bold text-success font-monospace">₹${inc.toLocaleString("en-IN")}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 ${c.notes ? `<div class="small bg-light p-2 rounded text-muted mb-3">${c.notes}</div>` : ""}
-                <div class="d-flex gap-2 mt-auto flex-wrap align-items-center">
-                  <button class="btn btn-sm btn-outline-success" onclick="advanceCropStage('${c.id}', '${c.stage}')">
-                    <i class="bi bi-arrow-up-circle"></i> Next Stage
+
+                <div class="d-flex gap-1 gap-md-2 mt-auto flex-wrap align-items-center pt-2 border-top">
+                  <button class="btn btn-sm btn-outline-success" onclick="advanceCropStage('${c.id}', '${c.stage}')" title="Advance Growth Stage">
+                    <i class="bi bi-arrow-up-circle"></i> <span class="d-none d-sm-inline">Next Stage</span>
                   </button>
-                  <button class="btn btn-sm btn-outline-primary" onclick="editCrop('${c.id}')">
-                    <i class="bi bi-pencil-square"></i> Edit
+                  <button class="btn btn-sm btn-outline-danger" onclick="openAddCropExpense('${c.id}', '${safeCropName}', '${c.plot_id || ''}')" title="Record an expense for this crop">
+                    <i class="bi bi-dash-circle"></i> <span data-i18n="add_cost_btn">+ Cost</span>
                   </button>
-                  <button class="btn btn-sm btn-outline-danger ms-auto" onclick="deleteCrop('${c.id}')">
+                  <button class="btn btn-sm btn-outline-primary" onclick="openAddCropIncome('${c.id}', '${safeCropName}', '${c.plot_id || ''}')" title="Record crop sale / return">
+                    <i class="bi bi-plus-circle"></i> <span data-i18n="add_sale_btn">+ Sale</span>
+                  </button>
+                  <button class="btn btn-sm btn-outline-secondary" onclick="openCropLedgerModal('${c.id}')" title="View detailed crop ledger">
+                    <i class="bi bi-journal-text"></i> <span data-i18n="crop_ledger_btn">Ledger</span>
+                  </button>
+                  <button class="btn btn-sm btn-link text-primary p-0 ms-1" onclick="editCrop('${c.id}')" title="Edit Crop Details">
+                    <i class="bi bi-pencil-square"></i>
+                  </button>
+                  <button class="btn btn-sm btn-link text-danger p-0 ms-auto" onclick="deleteCrop('${c.id}')" title="Delete Crop Record">
                     <i class="bi bi-trash"></i>
                   </button>
                 </div>
@@ -1095,8 +1157,204 @@ function calculateTxnTotal() {
 }
 
 // ----------------------------------------------------
-// Financials Loader
+// Financials Loader & Crop-Wise Tracking
 // ----------------------------------------------------
+function onTxnCropChange() {
+  const cropSel = document.getElementById("txnCropId");
+  const plotSel = document.getElementById("txnPlotId");
+  const commInput = document.getElementById("txnCommodity");
+  if (!cropSel) return;
+
+  const selectedOpt = cropSel.options[cropSel.selectedIndex];
+  if (!selectedOpt || !selectedOpt.value) return;
+
+  const cropId = selectedOpt.value;
+  const crops = window.UzhavanApp.crops || [];
+  const crop = crops.find(c => String(c.id) === String(cropId));
+  if (crop) {
+    if (plotSel && crop.plot_id) {
+      plotSel.value = crop.plot_id;
+    }
+    const typeInc = document.getElementById("txnTypeIncome");
+    if (commInput && (!commInput.value || (typeInc && typeInc.checked))) {
+      commInput.value = crop.crop_name;
+    }
+  }
+}
+
+async function openAddCropExpense(cropId, cropName, plotId) {
+  resetTxnModal();
+  await populateQuickLogDropdowns();
+  
+  const expRadio = document.getElementById("txnTypeExpense");
+  if (expRadio) {
+    expRadio.checked = true;
+    onTxnTypeChange("expense");
+  }
+
+  const cropSel = document.getElementById("txnCropId");
+  if (cropSel && cropId) cropSel.value = cropId;
+
+  const plotSel = document.getElementById("txnPlotId");
+  if (plotSel && plotId) plotSel.value = plotId;
+
+  const commInput = document.getElementById("txnCommodity");
+  if (commInput && cropName) commInput.value = "";
+
+  const titleEl = document.getElementById("txnModalTitle");
+  if (titleEl) titleEl.innerText = `Record Crop Expense: ${cropName}`;
+
+  const modalEl = document.getElementById("txnModal");
+  if (modalEl) {
+    const modal = bootstrap.Modal.getInstance(modalEl) || (bootstrap.Modal.getOrCreateInstance ? bootstrap.Modal.getOrCreateInstance(modalEl) : new bootstrap.Modal(modalEl));
+    modal.show();
+  }
+}
+
+async function openAddCropIncome(cropId, cropName, plotId) {
+  resetTxnModal();
+  await populateQuickLogDropdowns();
+
+  const incRadio = document.getElementById("txnTypeIncome");
+  if (incRadio) {
+    incRadio.checked = true;
+    onTxnTypeChange("income");
+  }
+
+  const cropSel = document.getElementById("txnCropId");
+  if (cropSel && cropId) cropSel.value = cropId;
+
+  const plotSel = document.getElementById("txnPlotId");
+  if (plotSel && plotId) plotSel.value = plotId;
+
+  const commInput = document.getElementById("txnCommodity");
+  if (commInput && cropName) commInput.value = cropName;
+
+  const titleEl = document.getElementById("txnModalTitle");
+  if (titleEl) titleEl.innerText = `Record Crop Return / Sale: ${cropName}`;
+
+  const modalEl = document.getElementById("txnModal");
+  if (modalEl) {
+    const modal = bootstrap.Modal.getInstance(modalEl) || (bootstrap.Modal.getOrCreateInstance ? bootstrap.Modal.getOrCreateInstance(modalEl) : new bootstrap.Modal(modalEl));
+    modal.show();
+  }
+}
+
+async function openCropLedgerModal(cropId) {
+  if (!cropId) return;
+
+  const modalEl = document.getElementById("cropLedgerModal");
+  if (!modalEl) return;
+
+  const titleEl = document.getElementById("cropLedgerModalTitle");
+  const subEl = document.getElementById("cropLedgerModalSubtitle");
+  const statsRow = document.getElementById("cropLedgerStatsRow");
+  const tbody = document.getElementById("cropLedgerTableBody");
+  const actionsEl = document.getElementById("cropLedgerModalActions");
+
+  if (tbody) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-success" role="status"></div> Loading ledger...</td></tr>`;
+  }
+
+  const modal = bootstrap.Modal.getInstance(modalEl) || (bootstrap.Modal.getOrCreateInstance ? bootstrap.Modal.getOrCreateInstance(modalEl) : new bootstrap.Modal(modalEl));
+  modal.show();
+
+  try {
+    const res = await fetch(`/api/crops/${cropId}/financials`);
+    if (!res.ok) {
+      if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">Failed to load crop financials.</td></tr>`;
+      return;
+    }
+    const data = await res.json();
+    const crop = data.crop || {};
+    const txns = data.transactions || [];
+    const exp = parseFloat(data.total_expense || 0);
+    const inc = parseFloat(data.total_income || 0);
+    const net = parseFloat(data.net_profit || 0);
+    const roi = data.roi_percentage || 0;
+
+    if (titleEl) titleEl.innerText = `Crop Ledger: ${crop.crop_name || 'Crop'}`;
+    if (subEl) subEl.innerText = `${crop.plot_name || 'Plot'} • ${crop.variety || ''} • Sown: ${crop.sowing_date || 'N/A'}`;
+
+    if (statsRow) {
+      statsRow.innerHTML = `
+        <div class="col-6 col-md-3">
+          <div class="p-2 rounded border bg-body text-center">
+            <div class="text-muted small" style="font-size: 0.72rem;">Cultivation Cost (செலவு)</div>
+            <div class="fw-bold text-danger font-monospace fs-6">₹${exp.toLocaleString("en-IN")}</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="p-2 rounded border bg-body text-center">
+            <div class="text-muted small" style="font-size: 0.72rem;">Harvest Returns (வரவு)</div>
+            <div class="fw-bold text-primary font-monospace fs-6">₹${inc.toLocaleString("en-IN")}</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="p-2 rounded border bg-body text-center">
+            <div class="text-muted small" style="font-size: 0.72rem;">Net Margin (லாபம்)</div>
+            <div class="fw-bold ${net >= 0 ? 'text-success' : 'text-danger'} font-monospace fs-6">${net >= 0 ? '+' : ''}₹${net.toLocaleString("en-IN")}</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="p-2 rounded border bg-body text-center">
+            <div class="text-muted small" style="font-size: 0.72rem;">ROI %</div>
+            <div class="fw-bold text-info font-monospace fs-6">${roi}%</div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (actionsEl) {
+      const safeName = (crop.crop_name || '').replace(/'/g, "\\'");
+      actionsEl.innerHTML = `
+        <button class="btn btn-sm btn-outline-danger" onclick="safeCloseModal('cropLedgerModal'); setTimeout(() => openAddCropExpense('${crop.id}', '${safeName}', '${crop.plot_id || ''}'), 250)">
+          <i class="bi bi-dash-circle me-1"></i> + Add Cost
+        </button>
+        <button class="btn btn-sm btn-outline-primary" onclick="safeCloseModal('cropLedgerModal'); setTimeout(() => openAddCropIncome('${crop.id}', '${safeName}', '${crop.plot_id || ''}'), 250)">
+          <i class="bi bi-plus-circle me-1"></i> + Add Return
+        </button>
+      `;
+    }
+
+    if (tbody) {
+      if (txns.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">No expenses or returns logged for this crop yet. Click "+ Add Cost" or "+ Add Return" above to record one!</td></tr>`;
+      } else {
+        let rows = "";
+        txns.forEach(t => {
+          const isExp = t.type === "expense";
+          const typeBadge = isExp ? `<span class="badge bg-danger-subtle text-danger"><i class="bi bi-dash-circle me-1"></i>Expense</span>` : `<span class="badge bg-success-subtle text-success"><i class="bi bi-plus-circle me-1"></i>Income</span>`;
+          const amtSign = isExp ? "-" : "+";
+          const amtClass = isExp ? "text-danger" : "text-success";
+
+          let details = t.desc || t.notes || "";
+          if (t.quantity && t.rate_per_unit) {
+            details = `<div class="badge bg-light text-dark border mb-1 tabular-nums">${t.quantity} ${t.unit || 'units'} &times; ₹${parseFloat(t.rate_per_unit).toLocaleString("en-IN")}</div>` + (details ? `<div>${details}</div>` : "");
+          }
+          if (t.buyer) {
+            details += `<div class="small text-muted"><i class="bi bi-building me-1"></i>${t.buyer}</div>`;
+          }
+
+          rows += `
+            <tr>
+              <td class="text-nowrap">${t.date}</td>
+              <td>${typeBadge}</td>
+              <td><strong>${t.category}</strong></td>
+              <td>${details || '-'}</td>
+              <td class="text-end fw-bold font-monospace text-nowrap ${amtClass}">${amtSign}₹${parseFloat(t.amount).toLocaleString("en-IN")}</td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = rows;
+      }
+    }
+  } catch (err) {
+    console.error("Failed to load crop ledger:", err);
+    if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">Error loading crop ledger details.</td></tr>`;
+  }
+}
+
 async function loadFinancials() {
   const tableBody = document.getElementById("txnsTableBody");
   if (!tableBody) return;
@@ -1108,6 +1366,7 @@ async function loadFinancials() {
     ]);
     const stats = await statsRes.json();
     const txns = await txnsRes.json();
+    window.UzhavanApp.stats = stats || {};
     window.UzhavanApp.txns = txns || [];
 
     document.getElementById("finIncome").innerText = `₹${stats.total_income.toLocaleString("en-IN")}`;
@@ -1122,78 +1381,218 @@ async function loadFinancials() {
     // Render Doughnut Chart of Expenses
     renderExpenseChart(stats.expenses_by_category);
 
-    // Render transactions table
-    if (txns.length === 0) {
-      tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No transactions recorded yet.</td></tr>`;
-      return;
-    }
+    // Render Crop-Wise Profitability Statement
+    renderCropProfitability(stats.crop_summary, stats.general_summary);
 
-    let rows = "";
-    txns.forEach(t => {
-      const isExp = t.type === "expense";
-      const typeBadge = isExp ? `<span class="badge bg-danger-subtle text-danger"><i class="bi bi-dash-circle me-1"></i>Expense</span>` : `<span class="badge bg-success-subtle text-success"><i class="bi bi-plus-circle me-1"></i>Income</span>`;
-      const amtSign = isExp ? "-" : "+";
-      const amtClass = isExp ? "text-danger" : "text-success";
-
-      let produceDetails = "";
-      if (t.quantity && t.rate_per_unit) {
-        const u = t.unit || "Units";
-        let weightStr = `<strong>${t.quantity} ${u}</strong>`;
-        if (t.deduction_per_ton_kg) {
-          weightStr += ` <span class="text-danger small font-monospace">(-${t.deduction_per_ton_kg}kg/T sand)</span>`;
-        }
-        if (t.net_quantity && t.net_quantity !== t.quantity) {
-          weightStr += ` &rarr; <span class="text-success fw-bold font-monospace">Net ${t.net_quantity} ${u}</span>`;
-        }
-        produceDetails += `<div class="badge bg-light text-dark border mb-1 tabular-nums"><i class="bi bi-calculator me-1 text-primary"></i>${weightStr} &times; ₹${parseFloat(t.rate_per_unit).toLocaleString("en-IN")}/${u.replace(/\s*\(.*\)/, '').replace(/s\b/, '')}</div>`;
-      }
-      if (t.harvest_charges || t.transport_charges || t.other_charges || (t.total_expenses && parseFloat(t.total_expenses) > 0)) {
-        const totalExp = t.total_expenses || ((parseFloat(t.harvest_charges||0) + parseFloat(t.transport_charges||0) + parseFloat(t.other_charges||0)));
-        if (totalExp > 0) {
-          produceDetails += `<div class="small text-danger mb-1 font-monospace"><i class="bi bi-dash-circle me-1"></i>Charges Paid: -₹${parseFloat(totalExp).toLocaleString("en-IN")}</div>`;
-        }
-      }
-      if (t.buyer) {
-        produceDetails += `<div class="small text-muted"><i class="bi bi-building me-1 text-secondary"></i><strong>Party:</strong> ${t.buyer}</div>`;
-      }
-      if (t.slip_no) {
-        produceDetails += `<div class="small text-muted"><i class="bi bi-receipt me-1 text-secondary"></i><strong>Slip:</strong> ${t.slip_no}</div>`;
-      }
-      if (t.desc) {
-        produceDetails += `<div class="small text-dark mt-1 p-2 bg-light border-start border-3 border-secondary rounded" style="white-space: pre-wrap; font-family: inherit;">${t.desc}</div>`;
-      }
-      if (!produceDetails) {
-        produceDetails = `<span class="text-muted small">${t.notes || "-"}</span>`;
-      }
-
-      const commodityBadge = t.commodity ? `<div class="small fw-bold text-success mt-1"><i class="bi bi-basket2-fill me-1"></i>${t.commodity}</div>` : "";
-
-      rows += `
-        <tr>
-          <td class="text-nowrap">${t.date}</td>
-          <td>${typeBadge}</td>
-          <td>
-            <strong>${t.category}</strong>
-            ${commodityBadge}
-          </td>
-          <td>${produceDetails}</td>
-          <td class="fw-bold tabular-nums text-nowrap ${amtClass}">${amtSign}₹${parseFloat(t.amount).toLocaleString("en-IN")}</td>
-          <td class="text-nowrap">
-            <button class="btn btn-sm btn-link text-primary p-0 me-2" title="Edit Transaction" onclick="editTxn('${t.id}')">
-              <i class="bi bi-pencil-square"></i>
-            </button>
-            <button class="btn btn-sm btn-link text-danger p-0" title="Delete" onclick="deleteTxn('${t.id}')">
-              <i class="bi bi-trash"></i>
-            </button>
-          </td>
-        </tr>
-      `;
-    });
-    tableBody.innerHTML = rows;
+    // Render transactions table using filter
+    filterTxnsTable();
 
   } catch (err) {
     console.error("Financials load error:", err);
   }
+}
+
+function renderCropProfitability(cropSummary, generalSummary) {
+  const tbody = document.getElementById("cropProfitabilityBody");
+  if (!tbody) return;
+
+  if (!cropSummary || cropSummary.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">No crop plantings recorded yet. Go to <a href="/crops" class="text-success fw-bold">Crops</a> to plant your first crop!</td></tr>`;
+    return;
+  }
+
+  let rows = "";
+  cropSummary.forEach(cs => {
+    const exp = parseFloat(cs.total_expense || 0);
+    const inc = parseFloat(cs.total_income || 0);
+    const net = parseFloat(cs.net_profit || 0);
+    const netClass = net >= 0 ? "text-success" : "text-danger";
+    const netSign = net >= 0 ? "+" : "";
+    const roiBadge = cs.roi_percentage >= 0 ? "bg-info-subtle text-info border" : "bg-danger-subtle text-danger border";
+    const safeName = (cs.crop_name || "").replace(/'/g, "\\'");
+
+    rows += `
+      <tr>
+        <td>
+          <strong class="text-body"><i class="bi bi-flower2 text-success me-1"></i>${cs.crop_name}</strong>
+          <div class="text-secondary small">${cs.variety || 'Standard'} &bull; ${cs.season || ''}</div>
+        </td>
+        <td>
+          <div class="fw-medium">${cs.plot_name || 'Plot'}</div>
+          <div class="text-muted small">${cs.area_acres || 0} Acres</div>
+        </td>
+        <td>
+          <span class="badge ${cs.status === 'active' ? 'bg-success' : 'bg-secondary'}">${cs.status}</span>
+          <div class="text-muted small text-truncate" style="max-width: 140px;">${cs.stage || ''}</div>
+        </td>
+        <td class="text-end fw-bold font-monospace text-danger text-nowrap">₹${exp.toLocaleString("en-IN")}</td>
+        <td class="text-end fw-bold font-monospace text-primary text-nowrap">₹${inc.toLocaleString("en-IN")}</td>
+        <td class="text-end fw-bold font-monospace ${netClass} text-nowrap">${netSign}₹${net.toLocaleString("en-IN")}</td>
+        <td class="text-center font-monospace"><span class="badge ${roiBadge}">${cs.roi_percentage}%</span></td>
+        <td class="text-center text-nowrap">
+          <div class="d-inline-flex gap-1">
+            <button class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size: 0.75rem;" onclick="openAddCropExpense('${cs.id}', '${safeName}', '${cs.plot_id || ''}')" title="Add cultivation expense">
+              + Cost
+            </button>
+            <button class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size: 0.75rem;" onclick="openAddCropIncome('${cs.id}', '${safeName}', '${cs.plot_id || ''}')" title="Add sales return">
+              + Sale
+            </button>
+            <button class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="openCropLedgerModal('${cs.id}')" title="View crop ledger">
+              Ledger
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+
+  // Add General Overhead row if generalSummary exists
+  if (generalSummary) {
+    const gExp = parseFloat(generalSummary.total_expense || 0);
+    const gInc = parseFloat(generalSummary.total_income || 0);
+    const gNet = parseFloat(generalSummary.net_profit || 0);
+    const gNetClass = gNet >= 0 ? "text-success" : "text-danger";
+    const gNetSign = gNet >= 0 ? "+" : "";
+
+    rows += `
+      <tr class="table-light border-top">
+        <td>
+          <strong class="text-secondary"><i class="bi bi-house-gear text-secondary me-1"></i>General Farm Overhead</strong>
+          <div class="text-muted small">Cattle feeds, general repairs, unallocated</div>
+        </td>
+        <td>
+          <div class="text-muted small">Entire Farm</div>
+        </td>
+        <td>
+          <span class="badge bg-secondary-subtle text-secondary border">Farm Overhead</span>
+        </td>
+        <td class="text-end fw-bold font-monospace text-danger text-nowrap">₹${gExp.toLocaleString("en-IN")}</td>
+        <td class="text-end fw-bold font-monospace text-primary text-nowrap">₹${gInc.toLocaleString("en-IN")}</td>
+        <td class="text-end fw-bold font-monospace ${gNetClass} text-nowrap">${gNetSign}₹${gNet.toLocaleString("en-IN")}</td>
+        <td class="text-center font-monospace text-muted">-</td>
+        <td class="text-center text-nowrap">
+          <button class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="resetTxnModal(); const m = bootstrap.Modal.getOrCreateInstance(document.getElementById('txnModal')); m.show();">
+            + Entry
+          </button>
+        </td>
+      </tr>
+    `;
+  }
+
+  tbody.innerHTML = rows;
+}
+
+function filterTxnsTable() {
+  const tableBody = document.getElementById("txnsTableBody");
+  if (!tableBody) return;
+
+  const cropFilter = (document.getElementById("txnCropFilter") ? document.getElementById("txnCropFilter").value : "all") || "all";
+  const typeFilter = (document.getElementById("txnTypeFilter") ? document.getElementById("txnTypeFilter").value : "all") || "all";
+  const searchInput = (document.getElementById("txnSearchInput") ? document.getElementById("txnSearchInput").value : "") || "";
+  const query = searchInput.toLowerCase().trim();
+
+  let txns = window.UzhavanApp.txns || [];
+
+  if (cropFilter === "general") {
+    txns = txns.filter(t => !t.crop_id && !t.crop_name);
+  } else if (cropFilter !== "all") {
+    txns = txns.filter(t => String(t.crop_id) === String(cropFilter) || String(t.crop_name || '').toLowerCase() === String(cropFilter).toLowerCase());
+  }
+
+  if (typeFilter !== "all") {
+    txns = txns.filter(t => t.type === typeFilter);
+  }
+
+  if (query) {
+    txns = txns.filter(t => {
+      const matchCat = (t.category || "").toLowerCase().includes(query);
+      const matchComm = (t.commodity || "").toLowerCase().includes(query);
+      const matchDesc = (t.desc || "").toLowerCase().includes(query);
+      const matchNotes = (t.notes || "").toLowerCase().includes(query);
+      const matchBuyer = (t.buyer || "").toLowerCase().includes(query);
+      const matchCrop = (t.crop_name || "").toLowerCase().includes(query);
+      return matchCat || matchComm || matchDesc || matchNotes || matchBuyer || matchCrop;
+    });
+  }
+
+  if (txns.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">No transactions matching filter criteria.</td></tr>`;
+    return;
+  }
+
+  let rows = "";
+  txns.forEach(t => {
+    const isExp = t.type === "expense";
+    const typeBadge = isExp ? `<span class="badge bg-danger-subtle text-danger"><i class="bi bi-dash-circle me-1"></i>Expense</span>` : `<span class="badge bg-success-subtle text-success"><i class="bi bi-plus-circle me-1"></i>Income</span>`;
+    const amtSign = isExp ? "-" : "+";
+    const amtClass = isExp ? "text-danger" : "text-success";
+
+    let produceDetails = "";
+    if (t.quantity && t.rate_per_unit) {
+      const u = t.unit || "Units";
+      let weightStr = `<strong>${t.quantity} ${u}</strong>`;
+      if (t.deduction_per_ton_kg) {
+        weightStr += ` <span class="text-danger small font-monospace">(-${t.deduction_per_ton_kg}kg/T sand)</span>`;
+      }
+      if (t.net_quantity && t.net_quantity !== t.quantity) {
+        weightStr += ` &rarr; <span class="text-success fw-bold font-monospace">Net ${t.net_quantity} ${u}</span>`;
+      }
+      produceDetails += `<div class="badge bg-light text-dark border mb-1 tabular-nums"><i class="bi bi-calculator me-1 text-primary"></i>${weightStr} &times; ₹${parseFloat(t.rate_per_unit).toLocaleString("en-IN")}/${u.replace(/\s*\(.*\)/, '').replace(/s\b/, '')}</div>`;
+    }
+    if (t.harvest_charges || t.transport_charges || t.other_charges || (t.total_expenses && parseFloat(t.total_expenses) > 0)) {
+      const totalExp = t.total_expenses || ((parseFloat(t.harvest_charges||0) + parseFloat(t.transport_charges||0) + parseFloat(t.other_charges||0)));
+      if (totalExp > 0) {
+        produceDetails += `<div class="small text-danger mb-1 font-monospace"><i class="bi bi-dash-circle me-1"></i>Charges Paid: -₹${parseFloat(totalExp).toLocaleString("en-IN")}</div>`;
+      }
+    }
+    if (t.buyer) {
+      produceDetails += `<div class="small text-muted"><i class="bi bi-building me-1 text-secondary"></i><strong>Party:</strong> ${t.buyer}</div>`;
+    }
+    if (t.slip_no) {
+      produceDetails += `<div class="small text-muted"><i class="bi bi-receipt me-1 text-secondary"></i><strong>Slip:</strong> ${t.slip_no}</div>`;
+    }
+    if (t.desc) {
+      produceDetails += `<div class="small text-dark mt-1 p-2 bg-light border-start border-3 border-secondary rounded" style="white-space: pre-wrap; font-family: inherit;">${t.desc}</div>`;
+    }
+    if (!produceDetails) {
+      produceDetails = `<span class="text-muted small">${t.notes || "-"}</span>`;
+    }
+
+    const commodityBadge = t.commodity ? `<div class="small fw-bold text-success mt-1"><i class="bi bi-basket2-fill me-1"></i>${t.commodity}</div>` : "";
+
+    let allocationBadge = "";
+    if (t.crop_name) {
+      allocationBadge = `<span class="badge bg-success-subtle text-success border"><i class="bi bi-flower2 me-1"></i>${t.crop_name}</span>`;
+      if (t.plot_name) allocationBadge += `<div class="small text-muted">${t.plot_name}</div>`;
+    } else if (t.plot_name) {
+      allocationBadge = `<span class="badge bg-secondary-subtle text-secondary border"><i class="bi bi-geo-alt me-1"></i>${t.plot_name}</span>`;
+    } else {
+      allocationBadge = `<span class="badge bg-light text-secondary border"><i class="bi bi-house me-1"></i>Farm General</span>`;
+    }
+
+    rows += `
+      <tr>
+        <td class="text-nowrap">${t.date}</td>
+        <td>${typeBadge}</td>
+        <td>
+          <strong>${t.category}</strong>
+          ${commodityBadge}
+        </td>
+        <td>${allocationBadge}</td>
+        <td>${produceDetails}</td>
+        <td class="fw-bold tabular-nums text-nowrap ${amtClass}">${amtSign}₹${parseFloat(t.amount).toLocaleString("en-IN")}</td>
+        <td class="text-nowrap">
+          <button class="btn btn-sm btn-link text-primary p-0 me-2" title="Edit Transaction" onclick="editTxn('${t.id}')">
+            <i class="bi bi-pencil-square"></i>
+          </button>
+          <button class="btn btn-sm btn-link text-danger p-0" title="Delete" onclick="deleteTxn('${t.id}')">
+            <i class="bi bi-trash"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+  tableBody.innerHTML = rows;
 }
 
 async function editTxn(txnId) {
@@ -1260,6 +1659,11 @@ async function editTxn(txnId) {
   const amtInp = document.getElementById("txnAmount");
   const dscInp = document.getElementById("txnDesc");
 
+  const cropSel = document.getElementById("txnCropId");
+  const plotSel = document.getElementById("txnPlotId");
+  if (cropSel) cropSel.value = txn.crop_id || "";
+  if (plotSel) plotSel.value = txn.plot_id || "";
+
   if (dtInp) dtInp.value = txn.date || "";
   if (comInp) comInp.value = txn.commodity || "";
   if (qtyInp) qtyInp.value = txn.quantity || "";
@@ -1307,6 +1711,11 @@ function resetTxnModal() {
   const today = new Date().toISOString().split("T")[0];
   const dtInp = document.getElementById("txnDate");
   if (dtInp) dtInp.value = today;
+
+  const cropSel = document.getElementById("txnCropId");
+  const plotSel = document.getElementById("txnPlotId");
+  if (cropSel) cropSel.value = "";
+  if (plotSel) plotSel.value = "";
 
   const netQtyInp = document.getElementById("txnNetQuantity");
   if (netQtyInp) netQtyInp.value = "";
@@ -1424,19 +1833,61 @@ async function populateQuickLogDropdowns() {
     }
   }
 
-  if (cropPlotSel) {
-    try {
-      const res = await fetch("/api/plots");
-      const plots = await res.json();
-      if (Array.isArray(plots)) {
-        const currentVal = cropPlotSel.value;
-        cropPlotSel.innerHTML = `<option value="">-- Select Farmland Plot (நிலம்) --</option>` +
-          plots.map(p => `<option value="${p.id}">${p.name} (${p.area_acres} ac)</option>`).join("");
-        if (currentVal) cropPlotSel.value = currentVal;
-      }
-    } catch (err) {
-      console.error("Failed to populate plot dropdowns:", err);
+  // Populate Farmland Plots & Crops across all modals
+  try {
+    const [plotsRes, cropsRes] = await Promise.all([
+      fetch("/api/plots"),
+      fetch("/api/crops")
+    ]);
+    const plots = await plotsRes.json();
+    const crops = await cropsRes.json();
+    window.UzhavanApp.plots = plots || [];
+    window.UzhavanApp.crops = crops || [];
+
+    // Populate plot dropdown in planting modal
+    if (cropPlotSel && Array.isArray(plots)) {
+      const currentVal = cropPlotSel.value;
+      cropPlotSel.innerHTML = `<option value="">-- Select Farmland Plot (நிலம்) --</option>` +
+        plots.map(p => `<option value="${p.id}">${p.name} (${p.area_acres} ac)</option>`).join("");
+      if (currentVal) cropPlotSel.value = currentVal;
     }
+
+    // Populate all txnPlotId dropdowns
+    document.querySelectorAll("select[id='txnPlotId']").forEach(sel => {
+      const cur = sel.value;
+      sel.innerHTML = `<option value="">-- Farm General / No Plot --</option>` +
+        plots.map(p => `<option value="${p.id}">${p.name} (${p.area_acres} ac)</option>`).join("");
+      if (cur) sel.value = cur;
+    });
+
+    // Populate all txnCropId dropdowns
+    document.querySelectorAll("select[id='txnCropId']").forEach(sel => {
+      const cur = sel.value;
+      let optHtml = `<option value="">-- General / Farm Overhead (No specific crop) --</option>`;
+      crops.forEach(c => {
+        const statusBadge = c.status === "active" ? "" : ` [${c.status}]`;
+        optHtml += `<option value="${c.id}">🌱 ${c.crop_name} (${c.plot_name || 'Plot'})${c.variety ? ' • ' + c.variety : ''}${statusBadge}</option>`;
+      });
+      sel.innerHTML = optHtml;
+      if (cur) sel.value = cur;
+    });
+
+    // Populate txnCropFilter dropdown on financials page
+    const cropFilter = document.getElementById("txnCropFilter");
+    if (cropFilter) {
+      const cur = cropFilter.value || "all";
+      let fHtml = `
+        <option value="all">🌱 All Crops & General</option>
+        <option value="general">🚜 General Overhead Only</option>
+      `;
+      crops.forEach(c => {
+        fHtml += `<option value="${c.id}">🌱 ${c.crop_name} (${c.plot_name || 'Plot'})</option>`;
+      });
+      cropFilter.innerHTML = fHtml;
+      cropFilter.value = cur;
+    }
+  } catch (err) {
+    console.error("Failed to populate crops & plots dropdowns:", err);
   }
 
   // Populate financial transaction categories if empty

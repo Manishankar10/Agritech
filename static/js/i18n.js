@@ -100,6 +100,13 @@ const I18N = {
     roi_label: "Return on Investment (ROI)",
     breakdown_expenses: "Expense Breakdown by Category",
     recent_txns: "Recent Farm Transactions",
+    crop_pnl_title: "Crop-Wise Profitability & Cost of Cultivation",
+    crop_pnl_subtitle: "Track direct cultivation expenses, harvest sales returns, and net margins per crop",
+    linked_crop: "Linked Crop / Cultivation",
+    add_cost_btn: "+ Add Cost",
+    add_sale_btn: "+ Add Return",
+    crop_ledger_btn: "Ledger",
+    general_overhead: "General Farm Overhead / Unallocated",
 
     // Advisory
     advisory_title: "Weather Forecast & Agricultural Advisory",
@@ -213,6 +220,13 @@ const I18N = {
     roi_label: "முதலீட்டின் மீதான லாபம் (ROI)",
     breakdown_expenses: "செலவு வகைப்பாடு",
     recent_txns: "சமீபத்திய வரவு செலவுகள்",
+    crop_pnl_title: "பயிர்வாரி லாப நட்ட கணக்கு & சாகுபடி செலவு",
+    crop_pnl_subtitle: "பயிர்களின் நேரடி சாகுபடி செலவு, அறுவடை வரவு மற்றும் நிகர லாப விவரங்கள்",
+    linked_crop: "இணைக்கப்பட்ட பயிர்",
+    add_cost_btn: "+ செலவு",
+    add_sale_btn: "+ வரவு",
+    crop_ledger_btn: "கணக்கு விவரம்",
+    general_overhead: "பண்ணை பொது நிர்வாக செலவுகள்",
 
     // Advisory
     advisory_title: "வானிலை முன்னறிவிப்பு & வேளாண் வழிகாட்டல்கள்",
