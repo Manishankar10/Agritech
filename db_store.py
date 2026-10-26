@@ -23,14 +23,54 @@ if IS_PRODUCTION:
     # PRODUCTION CONFIGURATION:
     # Connects to production MongoDB Atlas.
     _PROD_URI = os.environ.get("PROD_MONGO_URI") or os.environ.get("MONGO_URI") or os.environ.get("MONGODB_URI")
-    _PROD_DB_NAME = (os.environ.get("MONGO_DB_NAME") or os.environ.get("PROD_DB_NAME") or "uzhavan_prod_db").strip()
+    _CONFIGURED_DB_NAME = (os.environ.get("MONGO_DB_NAME") or os.environ.get("PROD_DB_NAME") or "uzhavan_db").strip()
     
     if _PROD_URI:
         try:
             from pymongo import MongoClient
             _client = MongoClient(_PROD_URI, serverSelectionTimeoutMS=5000)
             _client.admin.command('ping')
-            db = _client.get_database(_PROD_DB_NAME)
+
+            # Inspect cluster databases to locate user's existing production data
+            try:
+                cluster_dbs = _client.list_database_names()
+            except Exception:
+                cluster_dbs = []
+
+            # Determine target production database:
+            # 1. uzhavan_db: Primary production database containing user transactions
+            # 2. Or explicit MONGO_DB_NAME if in cluster
+            # 3. Or default database from URI
+            if "uzhavan_db" in cluster_dbs:
+                target_db = "uzhavan_db"
+            elif _CONFIGURED_DB_NAME in cluster_dbs:
+                target_db = _CONFIGURED_DB_NAME
+            else:
+                try:
+                    def_db = _client.get_default_database()
+                    if def_db is not None and def_db.name not in ("admin", "local", "config", "test", "capital_desk"):
+                        target_db = def_db.name
+                    else:
+                        target_db = "uzhavan_db"
+                except Exception:
+                    target_db = "uzhavan_db"
+
+            db = _client.get_database(target_db)
+
+            # Auto-Recovery: If uzhavan_prod_db was temporarily created during previous deployment,
+            # migrate any documents across to ensure 100% data preservation
+            if "uzhavan_prod_db" in cluster_dbs and db.name != "uzhavan_prod_db":
+                try:
+                    temp_db = _client.get_database("uzhavan_prod_db")
+                    for cname in ["financials", "crops", "plots", "livestock", "breeding_records", "milk_records", "users"]:
+                        for doc in temp_db[cname].find():
+                            m_id = doc.get("_id") or doc.get("id")
+                            if m_id and not db[cname].find_one({"$or": [{"_id": m_id}, {"id": m_id}]}):
+                                db[cname].insert_one(doc)
+                                print(f"[RECOVERY] Preserved document {m_id} from uzhavan_prod_db into {db.name}")
+                except Exception as me:
+                    print(f"[RECOVERY] Notice during sync check: {me}")
+
             DB_MODE = "PROD_MONGODB"
             CONNECTED_DB_NAME = db.name
             print(f"[OK] [PRODUCTION] Connected to Production MongoDB Atlas database: '{db.name}'.")
